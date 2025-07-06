@@ -1,89 +1,474 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to Firebase Hosting</title>
-
-    <!-- update the version number as needed -->
-    <script defer src="/__/firebase/11.10.0/firebase-app-compat.js"></script>
-    <!-- include only the Firebase features as you need -->
-    <script defer src="/__/firebase/11.10.0/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/11.10.0/firebase-database-compat.js"></script>
-    <script defer src="/__/firebase/11.10.0/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/11.10.0/firebase-functions-compat.js"></script>
-    <script defer src="/__/firebase/11.10.0/firebase-messaging-compat.js"></script>
-    <script defer src="/__/firebase/11.10.0/firebase-storage-compat.js"></script>
-    <script defer src="/__/firebase/11.10.0/firebase-analytics-compat.js"></script>
-    <script defer src="/__/firebase/11.10.0/firebase-remote-config-compat.js"></script>
-    <script defer src="/__/firebase/11.10.0/firebase-performance-compat.js"></script>
-    <!-- 
-      initialize the SDK after all desired features are loaded, set useEmulator to false
-      to avoid connecting the SDK to running emulators.
-    -->
-    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
-
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
-      }
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LexIntelligent - Командное приложение</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; }
+        .main-grid { display: grid; grid-template-columns: 320px 1fr 450px; gap: 1rem; height: calc(100vh - 4rem); }
+        .modal-backdrop { background-color: rgba(0,0,0,0.5); }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
-  </head>
-  <body>
-    <div id="message">
-      <h2>Welcome</h2>
-      <h1>Firebase Hosting Setup Complete</h1>
-      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
-      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
+</head>
+<body class="text-gray-800">
+
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-100">
+        <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg">
+            <div class="text-center">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto text-blue-600 mb-4"><path d="M4 4.5V20a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.5L15.5 4H6a2 2 0 0 0-2 2.5z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="m10 14-2 2 2 2"></path><path d="m14 14 2 2-2 2"></path></svg>
+                <h2 class="text-2xl font-bold text-gray-900">Добро пожаловать в LexIntelligent</h2>
+                <p id="auth-mode-subtitle" class="mt-2 text-sm text-gray-600">Войдите в свой аккаунт для продолжения</p>
+            </div>
+            <form id="auth-form" class="space-y-4">
+                <input id="email" name="email" type="email" autocomplete="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Email">
+                <input id="password" name="password" type="password" autocomplete="current-password" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Пароль">
+                <p id="auth-message" class="text-sm h-4"></p>
+                <button id="auth-submit-btn" type="submit" class="w-full py-2.5 font-semibold rounded-lg text-white bg-blue-600 hover:bg-blue-700">Войти</button>
+            </form>
+            <div class="text-center">
+                <button id="toggle-auth-mode" class="text-sm font-medium text-blue-600 hover:text-blue-500">Нет аккаунта? Зарегистрироваться</button>
+            </div>
+        </div>
     </div>
-    <p id="load">Firebase SDK Loading&hellip;</p>
 
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const loadEl = document.querySelector('#load');
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-        // // The Firebase SDK is initialized and available here!
-        //
-        // firebase.auth().onAuthStateChanged(user => { });
-        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
-        // firebase.firestore().doc('/foo/bar').get().then(() => { });
-        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
-        // firebase.messaging().requestPermission().then(() => { });
-        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
-        // firebase.analytics(); // call to activate
-        // firebase.analytics().logEvent('tutorial_completed');
-        // firebase.performance(); // call to activate
-        //
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+    <!-- Main App (hidden by default) -->
+    <div id="main-app" class="hidden">
+        <header class="bg-white shadow-md h-16 flex items-center justify-between px-6">
+            <div class="flex items-center space-x-3"><h1 class="text-xl font-bold text-gray-800">LexIntelligent</h1></div>
+            <div class="flex items-center space-x-4">
+                <button id="admin-panel-btn" class="hidden flex items-center space-x-2 px-3 py-2 bg-yellow-100 text-yellow-800 hover:bg-yellow-200 rounded-lg text-sm font-semibold">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i><span>Админ</span>
+                </button>
+                <div class="flex items-center space-x-2"><img src="https://placehold.co/40x40/E2E8F0/4A5568?text=Ю" alt="Avatar" class="rounded-full"><span id="user-email" class="font-semibold"></span></div>
+                <button id="logout-btn" class="flex items-center space-x-2 px-3 py-2 bg-gray-100 hover:bg-red-100 rounded-lg text-sm"><i data-lucide="log-out" class="w-4 h-4"></i><span>Выйти</span></button>
+            </div>
+        </header>
+        <main class="p-4 main-grid">
+            <div id="case-list-pane" class="bg-white rounded-xl shadow-sm flex flex-col">
+                <div class="p-4 border-b"><h2 class="text-lg font-bold">Общая картотека дел</h2><p class="text-sm text-gray-500">Всего дел: <span id="case-count">0</span></p></div>
+                <div class="flex-grow overflow-y-auto p-2 relative"><div id="case-list-loader" class="absolute inset-0 flex items-center justify-center bg-white/80 z-10"><div class="loader"></div></div><ul id="case-list" class="space-y-1"></ul></div>
+                <div class="p-4 border-t"><button id="addCaseBtn" class="w-full flex items-center justify-center space-x-2 bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700"><i data-lucide="plus-circle"></i><span>Новое дело</span></button></div>
+            </div>
+            <div id="document-registry-pane" class="bg-white rounded-xl shadow-sm flex flex-col">
+                <div class="p-4 border-b"><h2 class="text-lg font-bold">Реестр документов по делу</h2><p id="current-case-title" class="text-sm text-gray-500">Выберите дело</p></div>
+                <div class="flex-grow overflow-y-auto relative">
+                    <table class="w-full text-sm text-left"><thead class="bg-gray-50 sticky top-0"><tr><th class="p-4 font-semibold">№</th><th class="p-4 font-semibold">Наименование</th><th class="p-4 font-semibold">Добавил</th><th class="p-4 font-semibold">Действие</th></tr></thead><tbody id="document-list"></tbody></table>
+                    <div id="no-docs-placeholder" class="hidden h-full flex items-center justify-center"><div class="text-center text-gray-500"><i data-lucide="file-x" class="mx-auto w-16 h-16"></i><p class="mt-2 font-semibold">Документы отсутствуют</p></div></div>
+                </div>
+                <div class="p-4 border-t"><button id="uploadDocBtn" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg disabled:opacity-50" disabled><i data-lucide="upload-cloud"></i><span>Загрузить</span></button></div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm flex flex-col">
+                <div class="p-4 border-b flex items-center space-x-3"><img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Google_Gemini_logo.svg" alt="Gemini Logo" class="w-7 h-7"><h2 class="text-lg font-bold">Анализ документа</h2></div>
+                <div id="ai-content" class="flex-grow overflow-y-auto p-4 space-y-6"><div id="no-doc-selected-placeholder" class="h-full flex items-center justify-center"><div class="text-center text-gray-500"><i data-lucide="mouse-pointer-square" class="mx-auto w-16 h-16"></i><p class="mt-2 font-semibold">Документ не выбран</p></div></div></div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modals -->
+    <div id="addCaseModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+        <form id="addCaseForm" class="bg-white rounded-xl shadow-2xl w-full max-w-lg m-4">
+            <div class="p-6 border-b flex justify-between items-center">
+                <h3 class="text-xl font-bold">Создание нового дела</h3>
+                <button type="button" id="closeCaseModal" class="text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input name="court" type="text" placeholder="Наименование суда" class="w-full px-3 py-2 border rounded-lg" required>
+                <input name="caseNumber" type="text" placeholder="Номер дела" class="w-full px-3 py-2 border rounded-lg" required>
+                <input name="plaintiff" type="text" placeholder="Истец" class="w-full px-3 py-2 border rounded-lg" required>
+                <input name="defendant" type="text" placeholder="Ответчик" class="w-full px-3 py-2 border rounded-lg" required>
+            </div>
+            <div class="p-6 bg-gray-50 rounded-b-xl flex justify-end space-x-3">
+                <button type="button" id="cancelCaseModal" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">Отмена</button>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold hover:bg-blue-700 rounded-lg">Создать дело</button>
+            </div>
+        </form>
+    </div>
+    <div id="adminModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl m-4 flex flex-col" style="height: 80vh;">
+            <div class="p-6 border-b flex justify-between items-center">
+                <h3 class="text-xl font-bold">Панель администратора</h3>
+                <button id="closeAdminModal" class="text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+            </div>
+            <div class="p-6 flex-grow overflow-y-auto">
+                <h4 class="font-semibold mb-4">Заявки на регистрацию в ожидании</h4>
+                <div id="pending-users-list" class="space-y-3">
+                    <p class="text-gray-500">Новых заявок нет.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        try {
-          let app = firebase.app();
-          let features = [
-            'auth', 
-            'database', 
-            'firestore',
-            'functions',
-            'messaging', 
-            'storage', 
-            'analytics', 
-            'remoteConfig',
-            'performance',
-          ].filter(feature => typeof app[feature] === 'function');
-          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
-        } catch (e) {
-          console.error(e);
-          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
+    <!-- Hidden File Input for Uploads -->
+    <input type="file" id="file-upload-input" class="hidden" />
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, addDoc, onSnapshot, deleteDoc, query, serverTimestamp, orderBy, setDoc, getDoc, where, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Ваш личный firebaseConfig
+        const firebaseConfig = {
+            apiKey: "AIzaSyAYVZ1sSJ6qrZWBYo9IvoSI1KQCMuh2nuI",
+            authDomain: "lawyer42-2025.firebaseapp.com",
+            projectId: "lawyer42-2025",
+            storageBucket: "lawyer42-2025.firebasestorage.app",
+            messagingSenderId: "300771066344",
+            appId: "1:300771066344:web:6d36b6c5395e660f86a45d",
+            measurementId: "G-SJEBS5J5LH"
+        };
+        
+        const appId = 'lex-intelligent-app'; // Используем статичный ID для консистентности
+        const ADMIN_EMAIL = "367475@gmail.com";
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let selectedCaseId = null;
+        let selectedDocId = null;
+        let casesUnsubscribe = () => {};
+        let docsUnsubscribe = () => {};
+        let isLoginMode = true;
+
+        const authScreen = document.getElementById('auth-screen');
+        const mainApp = document.getElementById('main-app');
+        const authForm = document.getElementById('auth-form');
+        const authMessage = document.getElementById('auth-message');
+        const toggleAuthModeBtn = document.getElementById('toggle-auth-mode');
+        const authSubmitBtn = document.getElementById('auth-submit-btn');
+        const authModeSubtitle = document.getElementById('auth-mode-subtitle');
+        const adminPanelBtn = document.getElementById('admin-panel-btn');
+        const userEmailEl = document.getElementById('user-email');
+        const caseList = document.getElementById('case-list');
+        const documentList = document.getElementById('document-list');
+        const uploadDocBtn = document.getElementById('uploadDocBtn');
+        const fileUploadInput = document.getElementById('file-upload-input');
+        const currentCaseTitle = document.getElementById('current-case-title');
+        const noDocsPlaceholder = document.getElementById('no-docs-placeholder');
+        const aiContent = document.getElementById('ai-content');
+        const noDocSelectedPlaceholder = document.getElementById('no-doc-selected-placeholder');
+
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            authMessage.textContent = '';
+            authForm.reset();
+            authSubmitBtn.textContent = isLoginMode ? 'Войти' : 'Зарегистрироваться';
+            toggleAuthModeBtn.textContent = isLoginMode ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти';
+            authModeSubtitle.textContent = isLoginMode ? 'Войдите в свой аккаунт для продолжения' : 'Создайте аккаунт, чтобы начать работу';
         }
-      });
+
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = authForm.email.value;
+            const password = authForm.password.value;
+            authMessage.textContent = '';
+            authMessage.className = 'text-sm h-4';
+
+            try {
+                if (isLoginMode) {
+                    await signInWithEmailAndPassword(auth, email, password);
+                } else {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    const user = userCredential.user;
+                    
+                    const userDocRef = doc(db, "users", user.uid);
+                    await setDoc(userDocRef, {
+                        email: user.email,
+                        status: "pending",
+                        createdAt: serverTimestamp()
+                    });
+
+                    await signOut(auth);
+                    authMessage.textContent = 'Спасибо! Ваша заявка отправлена на рассмотрение.';
+                    authMessage.classList.add('text-green-600');
+                }
+            } catch (error) {
+                authMessage.classList.add('text-red-600');
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                     authMessage.textContent = 'Неверный email или пароль.';
+                } else if (error.code === 'auth/email-already-in-use') {
+                    authMessage.textContent = 'Этот email уже используется.';
+                } else {
+                    authMessage.textContent = 'Произошла ошибка. Попробуйте снова.';
+                }
+                console.error("Auth error:", error);
+            }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+        toggleAuthModeBtn.addEventListener('click', toggleAuthMode);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const userDocRef = doc(db, "users", user.uid);
+                const userDoc = await getDoc(userDocRef);
+
+                if (user.email === ADMIN_EMAIL) {
+                    showMainApp(user);
+                    return;
+                }
+
+                if (userDoc.exists() && userDoc.data().status === 'approved') {
+                    showMainApp(user);
+                } else {
+                    await signOut(auth);
+                    authMessage.textContent = 'Ваша учетная запись ожидает одобрения администратором.';
+                    authMessage.className = 'text-sm h-4 text-yellow-600';
+                }
+            } else {
+                currentUser = null;
+                authScreen.classList.remove('hidden');
+                mainApp.classList.add('hidden');
+                casesUnsubscribe();
+                docsUnsubscribe();
+            }
+        });
+
+        function showMainApp(user) {
+            currentUser = user;
+            authScreen.classList.add('hidden');
+            mainApp.classList.remove('hidden');
+            userEmailEl.textContent = user.email;
+            adminPanelBtn.classList.toggle('hidden', user.email !== ADMIN_EMAIL);
+            lucide.createIcons();
+            listenToCases();
+        }
+
+        function listenToCases() {
+            casesUnsubscribe();
+            const casesRef = collection(db, 'cases');
+            const q = query(casesRef, orderBy('createdAt', 'desc'));
+            casesUnsubscribe = onSnapshot(q, snapshot => {
+                const cases = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderCaseList(cases);
+            });
+        }
+        
+        function renderCaseList(cases) {
+            document.getElementById('case-count').textContent = cases.length;
+            caseList.innerHTML = '';
+            if (cases.length === 0) {
+                 caseList.innerHTML = `<li class="p-4 text-center text-gray-500">Дела отсутствуют.</li>`;
+                 return;
+            }
+            cases.forEach(c => {
+                 const li = document.createElement('li');
+                li.className = `p-3 rounded-lg cursor-pointer border-2 group relative ${selectedCaseId === c.id ? 'bg-blue-50 border-blue-500' : 'border-transparent hover:bg-gray-100'}`;
+                li.dataset.caseId = c.id;
+                li.innerHTML = `
+                    <div class="font-semibold text-gray-800">${c.caseNumber}</div>
+                    <div class="text-sm text-gray-600 truncate">${c.plaintiff} vs ${c.defendant}</div>
+                    <div class="text-xs text-gray-400 mt-1 truncate">Добавил: ${c.creatorEmail}</div>
+                    <button data-delete-id="${c.id}" class="absolute top-2 right-2 p-1 rounded-full bg-gray-200 text-gray-500 hover:bg-red-500 hover:text-white opacity-0 group-hover:opacity-100"><i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i></button>`;
+                caseList.appendChild(li);
+            });
+            lucide.createIcons();
+        }
+
+        function selectCase(caseId) {
+            selectedCaseId = caseId;
+            selectedDocId = null;
+            document.querySelectorAll('#case-list li').forEach(li => {
+                li.classList.toggle('bg-blue-50', li.dataset.caseId === caseId);
+                li.classList.toggle('border-blue-500', li.dataset.caseId === caseId);
+            });
+            const caseData = document.querySelector(`li[data-case-id="${caseId}"]`);
+            currentCaseTitle.textContent = caseData ? caseData.querySelector('.font-semibold').textContent : '...';
+            uploadDocBtn.disabled = false;
+            renderAiAnalysis(null);
+            listenToDocuments(caseId);
+        }
+
+        function listenToDocuments(caseId) {
+            docsUnsubscribe();
+            const docsRef = collection(db, 'cases', caseId, 'documents');
+            const q = query(docsRef, orderBy('createdAt', 'asc'));
+            docsUnsubscribe = onSnapshot(q, snapshot => {
+                const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderDocumentList(docs);
+            });
+        }
+
+        function renderDocumentList(docs) {
+            documentList.innerHTML = '';
+            noDocsPlaceholder.classList.toggle('hidden', docs.length > 0);
+            docs.forEach((doc, index) => {
+                const tr = document.createElement('tr');
+                tr.className = `border-b hover:bg-gray-50 cursor-pointer ${selectedDocId === doc.id ? 'bg-blue-50' : ''}`;
+                tr.dataset.docId = doc.id;
+                tr.dataset.docData = JSON.stringify(doc);
+                tr.innerHTML = `<td class="p-4">${index + 1}</td><td class="p-4 font-medium text-blue-600">${doc.name}</td><td class="p-4 text-sm text-gray-500">${doc.creatorEmail}</td><td class="p-4"><button data-delete-doc-id="${doc.id}" class="p-1 rounded-md text-gray-500 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i></button></td>`;
+                documentList.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        function renderAiAnalysis(docData) {
+            noDocSelectedPlaceholder.classList.toggle('hidden', !!docData);
+            if (!docData) {
+                aiContent.innerHTML = '';
+                aiContent.appendChild(noDocSelectedPlaceholder);
+                return;
+            }
+            const analysis = docData.aiAnalysis || { summary: 'Нет данных для анализа.'};
+            aiContent.innerHTML = `
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h3 class="font-bold text-blue-800">Краткая характеристика</h3>
+                    <p class="mt-1 text-sm text-blue-900">${analysis.summary}</p>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        caseList.addEventListener('click', async e => {
+            const caseLi = e.target.closest('li[data-case-id]');
+            const deleteBtn = e.target.closest('button[data-delete-id]');
+
+            if (deleteBtn) {
+                e.stopPropagation();
+                const caseIdToDelete = deleteBtn.dataset.deleteId;
+                if (confirm(`Вы уверены, что хотите удалить это дело? Оно будет удалено для всех пользователей.`)) {
+                    try {
+                        await deleteDoc(doc(db, 'cases', caseIdToDelete));
+                    } catch (error) {
+                        console.error("Error deleting case: ", error);
+                        alert("Не удалось удалить дело.");
+                    }
+                }
+                return;
+            }
+
+            if (caseLi) selectCase(caseLi.dataset.caseId);
+        });
+
+        documentList.addEventListener('click', async (e) => {
+            const docRow = e.target.closest('tr[data-doc-id]');
+            const deleteBtn = e.target.closest('button[data-delete-doc-id]');
+
+            if (deleteBtn) {
+                e.stopPropagation();
+                const docIdToDelete = deleteBtn.dataset.deleteDocId;
+                if (confirm(`Вы уверены, что хотите удалить этот документ?`)) {
+                    try {
+                        await deleteDoc(doc(db, 'cases', selectedCaseId, 'documents', docIdToDelete));
+                        renderAiAnalysis(null);
+                    } catch (error) {
+                        console.error("Error deleting document: ", error);
+                        alert("Не удалось удалить документ.");
+                    }
+                }
+                return;
+            }
+
+            if (docRow) {
+                selectedDocId = docRow.dataset.docId;
+                renderDocumentList(Array.from(documentList.querySelectorAll('tr')).map(tr => JSON.parse(tr.dataset.docData || '{}')));
+                renderAiAnalysis(JSON.parse(docRow.dataset.docData));
+            }
+        });
+        
+        // Modal Logic for adding a case
+        const addCaseModal = document.getElementById('addCaseModal');
+        const addCaseForm = document.getElementById('addCaseForm');
+        document.getElementById('addCaseBtn').addEventListener('click', () => addCaseModal.classList.remove('hidden'));
+        document.getElementById('closeCaseModal').addEventListener('click', () => addCaseModal.classList.add('hidden'));
+        document.getElementById('cancelCaseModal').addEventListener('click', () => addCaseModal.classList.add('hidden'));
+
+        addCaseForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const caseData = {
+                court: addCaseForm.court.value,
+                caseNumber: addCaseForm.caseNumber.value,
+                plaintiff: addCaseForm.plaintiff.value,
+                defendant: addCaseForm.defendant.value,
+                createdAt: serverTimestamp(),
+                creatorEmail: currentUser.email,
+                creatorId: currentUser.uid
+            };
+            await addDoc(collection(db, 'cases'), caseData);
+            addCaseForm.reset();
+            addCaseModal.classList.add('hidden');
+        });
+
+        // File Upload Logic
+        uploadDocBtn.addEventListener('click', () => {
+            if (!selectedCaseId) return;
+            fileUploadInput.click();
+        });
+
+        fileUploadInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file || !selectedCaseId) {
+                return;
+            }
+
+            const newDoc = {
+                name: file.name,
+                createdAt: serverTimestamp(),
+                creatorEmail: currentUser.email,
+                creatorId: currentUser.uid,
+                aiAnalysis: { summary: 'Анализ для этого документа еще не сгенерирован.' }
+            };
+
+            try {
+                await addDoc(collection(db, 'cases', selectedCaseId, 'documents'), newDoc);
+            } catch (error) {
+                console.error("Error adding document record:", error);
+                alert('Не удалось добавить запись о документе.');
+            } finally {
+                event.target.value = null;
+            }
+        });
+
+        // Admin Panel Logic
+        const adminModal = document.getElementById('adminModal');
+        const pendingUsersList = document.getElementById('pending-users-list');
+
+        adminPanelBtn.addEventListener('click', () => {
+            adminModal.classList.remove('hidden');
+            listenForPendingUsers();
+        });
+        document.getElementById('closeAdminModal').addEventListener('click', () => adminModal.classList.add('hidden'));
+
+        function listenForPendingUsers() {
+            const q = query(collection(db, "users"), where("status", "==", "pending"));
+            onSnapshot(q, (snapshot) => {
+                pendingUsersList.innerHTML = '';
+                if (snapshot.empty) {
+                    pendingUsersList.innerHTML = '<p class="text-gray-500">Новых заявок нет.</p>';
+                    return;
+                }
+                snapshot.forEach(userDoc => {
+                    const user = userDoc.data();
+                    const div = document.createElement('div');
+                    div.className = "flex items-center justify-between p-3 bg-gray-50 rounded-lg";
+                    div.innerHTML = `
+                        <div>
+                            <p class="font-semibold">${user.email}</p>
+                            <p class="text-xs text-gray-500">ID: ${userDoc.id}</p>
+                        </div>
+                        <button data-uid="${userDoc.id}" class="approve-btn px-3 py-1 bg-green-500 text-white text-sm font-semibold rounded-md hover:bg-green-600">Одобрить</button>
+                    `;
+                    pendingUsersList.appendChild(div);
+                });
+            });
+        }
+        
+        pendingUsersList.addEventListener('click', async e => {
+            if (e.target.classList.contains('approve-btn')) {
+                const uid = e.target.dataset.uid;
+                const userDocRef = doc(db, "users", uid);
+                await updateDoc(userDocRef, { status: "approved" });
+            }
+        });
+
     </script>
-  </body>
+</body>
 </html>
