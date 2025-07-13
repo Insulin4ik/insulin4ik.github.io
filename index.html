@@ -141,6 +141,7 @@
         import { getFirestore, collection, doc, addDoc, onSnapshot, deleteDoc, query, serverTimestamp, orderBy, setDoc, getDoc, where, updateDoc, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         const UPLOADCARE_PUBLIC_KEY = "c11e2f44c08fb325487c";
+        const UPLOADCARE_SECRET_KEY = "b2525ba9ebe2f838e2ca"; // <-- ВСТАВЬТЕ ВАШ СЕКРЕТНЫЙ КЛЮЧ СЮДА
         const firebaseConfig = { apiKey: "AIzaSyA26SkUJJi4iSo82SWnpyDi8fMrh5o7msk", authDomain: "lawyer42-2025.firebaseapp.com", projectId: "lawyer42-2025", storageBucket: "lawyer42-2025.appspot.com", messagingSenderId: "300771066344", appId: "1:300771066344:web:6d36b6c5395e660f86a45d" };
         const ADMIN_EMAIL = "367475@gmail.com";
         const GEMINI_API_KEY = "AIzaSyDFGlsAGJLyU2VrgYdLLlFkCY-61zGgVy8";
@@ -424,7 +425,7 @@
                     // Ожидание результата OCR
                     let textContent = await pollOcrResult(recognizeData.result.token);
 
-                    const newDoc = { name: file.name, downloadURL: `https://ucarecdn.com/${uuid}/${file.name}`, createdAt: serverTimestamp(), creatorEmail: currentUser.email, folderId, textContent: textContent || "Не удалось распознать текст." };
+                    const newDoc = { name: file.name, downloadURL: `https://ucarecdn.com/${uuid}/${file.name}`, uuid: uuid, createdAt: serverTimestamp(), creatorEmail: currentUser.email, folderId, textContent: textContent || "Не удалось распознать текст." };
                     await addDoc(collection(db, 'cases', selectedCaseId, 'documents'), newDoc);
                     await logAction('doc_uploaded', { caseId: selectedCaseId, name: file.name });
 
@@ -449,6 +450,30 @@
             }
             throw new Error('OCR polling timed out.');
         }
+        
+        async function deleteFileFromUploadcare(uuid) {
+            if (!UPLOADCARE_SECRET_KEY || UPLOADCARE_SECRET_KEY === "YOUR_SECRET_KEY_HERE") {
+                console.warn("Uploadcare secret key не установлен. Пропуск удаления файла с хостинга.");
+                return; 
+            }
+            try {
+                const response = await fetch(`https://api.uploadcare.com/files/${uuid}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Uploadcare.Simple ${UPLOADCARE_PUBLIC_KEY}:${UPLOADCARE_SECRET_KEY}`,
+                        'Accept': 'application/vnd.uploadcare-v0.7+json',
+                    }
+                });
+                if (!response.ok) {
+                    console.error(`Не удалось удалить файл ${uuid} с Uploadcare. Статус: ${response.status}`);
+                } else {
+                    console.log(`Файл ${uuid} успешно удален с Uploadcare.`);
+                }
+            } catch (error) {
+                console.error(`Ошибка при удалении файла ${uuid} с Uploadcare:`, error);
+            }
+        }
+
 
         function populateCaseDropdown(selectElement) {
             selectElement.innerHTML = '<option value="">Не привязывать</option>';
@@ -590,7 +615,11 @@
                         const docsQuery = query(collection(db, 'cases', caseId, 'documents'));
                         const docsSnapshot = await getDocs(docsQuery);
                         const batch = writeBatch(db);
-                        docsSnapshot.forEach(docSnap => batch.delete(docSnap.ref));
+                        for (const docSnap of docsSnapshot.docs) {
+                            const docData = docSnap.data();
+                            if(docData.uuid) await deleteFileFromUploadcare(docData.uuid);
+                            batch.delete(docSnap.ref);
+                        }
                         batch.delete(doc(db, 'cases', caseId));
                         await batch.commit();
                         await logAction('case_deleted', { caseId });
@@ -607,7 +636,9 @@
                     }
                     break;
                 case 'delete-doc':
-                    if (await showConfirm('Удалить документ?', 'Вы уверены, что хотите удалить этот документ?')) {
+                    const docToDelete = docsCache.find(d => d.id === docId);
+                    if (docToDelete && await showConfirm('Удалить документ?', 'Вы уверены, что хотите удалить этот документ?')) {
+                        if (docToDelete.uuid) await deleteFileFromUploadcare(docToDelete.uuid);
                         await deleteDoc(doc(db, 'cases', selectedCaseId, 'documents', docId));
                         await logAction('doc_deleted', { caseId: selectedCaseId, docId });
                     }
@@ -636,7 +667,12 @@
                     if (await showConfirm('Удалить папку?', 'Все документы внутри папки будут также удалены! Это действие необратимо.')) {
                         const batch = writeBatch(db);
                         const filesInFolder = docsCache.filter(d => d.folderId === docId);
-                        filesInFolder.forEach(file => batch.delete(doc(db, 'cases', selectedCaseId, 'documents', file.id)));
+                        for (const file of filesInFolder) {
+                            if (file.uuid) await deleteFileFromUploadcare(file.uuid);
+                            batch.delete(doc(db, 'cases', selectedCaseId, 'documents', file.id));
+                        }
+                        const folderDoc = docsCache.find(d => d.id === docId);
+                        if (folderDoc.uuid) await deleteFileFromUploadcare(folderDoc.uuid);
                         batch.delete(doc(db, 'cases', selectedCaseId, 'documents', docId));
                         await batch.commit();
                         await logAction('folder_deleted', { caseId: selectedCaseId, docId });
