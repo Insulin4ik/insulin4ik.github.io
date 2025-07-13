@@ -3,33 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LexIntelligent - Финальная версия</title>
+    <title>KemYuristUk - Ваш юридический ИИ-помощник</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; }
-        .main-grid { display: grid; grid-template-columns: 320px 1fr 450px; gap: 1rem; height: calc(100vh - 4rem); }
+        .main-grid { display: grid; grid-template-columns: 350px 1fr 480px; gap: 1rem; height: calc(100vh - 4rem); }
         .modal-backdrop { background-color: rgba(0,0,0,0.5); }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #calendar-container { height: calc(100vh - 9rem); }
+        .fc .fc-button-primary { background-color: #2563eb; border-color: #2563eb; }
+        .fc .fc-daygrid-day.fc-day-today { background-color: #eff6ff; }
+        .fc-event { font-size: 0.8rem; cursor: pointer; }
+        .prose { max-width: none; }
+        .prose br { display: block; content: ""; margin-top: 0.5em; }
     </style>
 </head>
 <body class="text-gray-800">
 
-    <!-- Auth Screen -->
+    <!-- === ЭКРАН АВТОРИЗАЦИИ === -->
     <div id="auth-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-100">
         <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg">
             <div class="text-center">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto text-blue-600 mb-4"><path d="M4 4.5V20a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.5L15.5 4H6a2 2 0 0 0-2 2.5z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="m10 14-2 2 2 2"></path><path d="m14 14 2 2-2 2"></path></svg>
-                <h2 class="text-2xl font-bold text-gray-900">Добро пожаловать в LexIntelligent</h2>
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto text-blue-600 mb-4"><path d="M4 4.5V20a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.5L15.5 4H6a2 2 0 0 0-2 2.5z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="m10 14-2 2 2 2"></path><path d="m14 14 2 2-2 2"></path></svg>
+                <h2 class="text-2xl font-bold text-gray-900">Добро пожаловать в KemYuristUk</h2>
                 <p id="auth-mode-subtitle" class="mt-2 text-sm text-gray-600">Войдите в свой аккаунт для продолжения</p>
             </div>
             <form id="auth-form" class="space-y-4">
                 <input id="email" name="email" type="email" autocomplete="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Email">
                 <input id="password" name="password" type="password" autocomplete="current-password" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Пароль">
                 <p id="auth-message" class="text-sm h-4"></p>
-                <button id="auth-submit-btn" type="submit" class="w-full py-2.5 font-semibold rounded-lg text-white bg-blue-600 hover:bg-blue-700">Войти</button>
+                <button type="submit" class="w-full py-2.5 font-semibold rounded-lg text-white bg-blue-600 hover:bg-blue-700">Войти</button>
             </form>
             <div class="text-center">
                 <button id="toggle-auth-mode" class="text-sm font-medium text-blue-600 hover:text-blue-500">Нет аккаунта? Зарегистрироваться</button>
@@ -37,259 +44,162 @@
         </div>
     </div>
 
-    <!-- Main App (hidden by default) -->
+    <!-- === ОСНОВНОЕ ПРИЛОЖЕНИЕ === -->
     <div id="main-app" class="hidden">
         <header class="bg-white shadow-md h-16 flex items-center justify-between px-6">
-            <div class="flex items-center space-x-3"><h1 class="text-xl font-bold text-gray-800">LexIntelligent</h1></div>
+            <div class="flex items-center space-x-3"><h1 class="text-xl font-bold text-gray-800">KemYuristUk</h1></div>
             <div class="flex items-center space-x-4">
-                <button id="admin-panel-btn" class="hidden flex items-center space-x-2 px-3 py-2 bg-yellow-100 text-yellow-800 hover:bg-yellow-200 rounded-lg text-sm font-semibold">
+                <button data-action="toggle-view" class="flex items-center space-x-2 px-3 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-sm font-semibold">
+                    <i data-lucide="calendar" class="w-4 h-4"></i><span>Календарь</span>
+                </button>
+                <button data-action="open-admin-panel" class="hidden flex items-center space-x-2 px-3 py-2 bg-yellow-100 text-yellow-800 hover:bg-yellow-200 rounded-lg text-sm font-semibold">
                     <i data-lucide="shield-check" class="w-4 h-4"></i><span>Админ</span>
                 </button>
-                <div class="flex items-center space-x-2"><img src="https://placehold.co/40x40/E2E8F0/4A5568?text=Ю" alt="Avatar" class="rounded-full"><span id="user-email" class="font-semibold"></span></div>
-                <button id="logout-btn" class="flex items-center space-x-2 px-3 py-2 bg-gray-100 hover:bg-red-100 rounded-lg text-sm"><i data-lucide="log-out" class="w-4 h-4"></i><span>Выйти</span></button>
+                <div data-action="open-profile" class="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-gray-100">
+                    <img id="user-avatar" src="https://placehold.co/40x40/E2E8F0/4A5568?text=Ю" alt="Avatar" class="rounded-full w-8 h-8">
+                    <span id="user-email" class="font-semibold text-sm"></span>
+                </div>
+                <button data-action="logout" class="flex items-center space-x-2 px-3 py-2 bg-gray-100 hover:bg-red-100 rounded-lg text-sm"><i data-lucide="log-out" class="w-4 h-4"></i><span>Выйти</span></button>
             </div>
         </header>
-        <main class="p-4 main-grid">
-            <div id="case-list-pane" class="bg-white rounded-xl shadow-sm flex flex-col">
-                <div class="p-4 border-b"><h2 class="text-lg font-bold">Общая картотека дел</h2><p class="text-sm text-gray-500">Всего дел: <span id="case-count">0</span></p></div>
-                <div class="flex-grow overflow-y-auto p-2 relative"><div id="case-list-loader" class="absolute inset-0 flex items-center justify-center bg-white/80 z-10"><div class="loader"></div></div><ul id="case-list" class="space-y-1"></ul></div>
-                <div class="p-4 border-t"><button id="addCaseBtn" class="w-full flex items-center justify-center space-x-2 bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700"><i data-lucide="plus-circle"></i><span>Новое дело</span></button></div>
-            </div>
-            <div id="document-registry-pane" class="bg-white rounded-xl shadow-sm flex flex-col">
-                <div class="p-4 border-b"><h2 class="text-lg font-bold">Реестр документов по делу</h2><p id="current-case-title" class="text-sm text-gray-500">Выберите дело</p></div>
-                <div class="flex-grow overflow-y-auto relative">
-                    <table class="w-full text-sm text-left"><thead class="bg-gray-50 sticky top-0"><tr><th class="p-4 font-semibold">№</th><th class="p-4 font-semibold">Наименование</th><th class="p-4 font-semibold">Добавил</th><th class="p-4 font-semibold text-center">Действия</th></tr></thead><tbody id="document-list"></tbody></table>
-                    <div id="no-docs-placeholder" class="hidden h-full flex items-center justify-center"><div class="text-center text-gray-500"><i data-lucide="file-x" class="mx-auto w-16 h-16"></i><p class="mt-2 font-semibold">Документы отсутствуют</p></div></div>
-                </div>
-                <div class="p-4 border-t"><button id="uploadDocBtn" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg disabled:opacity-50" disabled><i data-lucide="upload-cloud"></i><span>Загрузить</span></button></div>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm flex flex-col">
-                <div class="p-4 border-b flex items-center space-x-3"><img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Google_Gemini_logo.svg" alt="Gemini Logo" class="w-7 h-7"><h2 class="text-lg font-bold">Анализ документа</h2></div>
-                <div id="ai-content" class="flex-grow overflow-y-auto p-4 space-y-6 relative">
-                    <div id="ai-loader" class="absolute inset-0 hidden items-center justify-center bg-white/80 z-10"><div class="loader"></div></div>
-                    <div id="no-doc-selected-placeholder" class="h-full flex items-center justify-center">
-                        <div class="text-center text-gray-500"><i data-lucide="mouse-pointer-square" class="mx-auto w-16 h-16"></i><p class="mt-2 font-semibold">Документ не выбран</p></div>
-                    </div>
-                </div>
-            </div>
+
+        <main id="cases-view" class="p-4 main-grid">
+            <div class="bg-white rounded-xl shadow-sm flex flex-col"><div class="p-4 border-b"><h2 class="text-lg font-bold">Общая картотека дел</h2><p class="text-sm text-gray-500">Всего дел: <span id="case-count">0</span></p></div><div class="flex-grow overflow-y-auto p-2 relative"><div id="case-list-loader" class="absolute inset-0 flex items-center justify-center bg-white/80 z-10"><div class="loader"></div></div><ul id="case-list" class="space-y-1"></ul></div><div class="p-4 border-t"><button data-action="open-add-case-modal" class="w-full flex items-center justify-center space-x-2 bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700"><i data-lucide="plus-circle"></i><span>Новое дело</span></button></div></div>
+            <div class="bg-white rounded-xl shadow-sm flex flex-col"><div class="p-4 border-b"><h2 class="text-lg font-bold">Реестр документов по делу</h2><p id="current-case-title" class="text-sm text-gray-500">Выберите дело</p></div><div id="docs-container" class="flex-grow overflow-y-auto p-4 space-y-4"><div id="no-docs-placeholder" class="h-full flex items-center justify-center"><div class="text-center text-gray-500"><i data-lucide="file-x" class="mx-auto w-16 h-16"></i><p class="mt-2 font-semibold">Документы отсутствуют</p></div></div></div><div class="p-4 border-t flex space-x-2"><button data-action="upload-doc" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg disabled:opacity-50" disabled><i data-lucide="upload-cloud"></i><span>Загрузить</span></button><button data-action="add-folder" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg disabled:opacity-50" disabled><i data-lucide="folder-plus"></i><span>Создать папку</span></button></div></div>
+            <div class="bg-white rounded-xl shadow-sm flex flex-col"><div class="p-4 border-b flex items-center space-x-3"><img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Google_Gemini_logo.svg" alt="Логотип Gemini" class="w-7 h-7"><h2 class="text-lg font-bold">ИИ-Ассистент</h2></div><div class="flex-grow flex flex-col"><div class="border-b"><nav class="flex -mb-px"><button data-tab="analysis" class="ai-tab-btn border-b-2 border-blue-500 text-blue-600 py-3 px-4 font-medium">Анализ дела</button><button data-tab="tasks" class="ai-tab-btn border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-3 px-4 font-medium">Задачи для ИИ</button></nav></div><div class="flex-grow overflow-y-auto relative p-4 space-y-4"><div id="ai-loader" class="absolute inset-0 hidden items-center justify-center bg-white/80 z-10"><div class="loader"></div></div><div id="analysis-tab-content"><div id="ai-placeholder" class="h-full flex items-center justify-center"><div class="text-center text-gray-500"><i data-lucide="mouse-pointer-square" class="mx-auto w-16 h-16"></i><p class="mt-2 font-semibold">Выберите дело для анализа</p></div></div><div id="ai-analysis-results" class="hidden space-y-4"></div></div><div id="tasks-tab-content" class="hidden space-y-4"><p class="text-sm text-gray-600">Опишите задачу для ИИ-ассистента. Например: "Подготовь ходатайство об ознакомлении с материалами дела."</p><textarea id="ai-task-input" class="w-full h-32 p-2 border rounded-lg" placeholder="Текст задачи..."></textarea><button data-action="execute-ai-task" class="w-full flex items-center justify-center space-x-2 bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50" disabled>Выполнить задачу</button><div id="ai-task-result-container" class="hidden space-y-2 mt-4"><h3 class="font-bold">Результат:</h3><div class="relative"><textarea id="ai-task-result-output" class="w-full h-64 p-2 border rounded-lg bg-gray-50" readonly></textarea><button data-action="copy-ai-result" class="absolute top-2 right-2 p-1.5 bg-gray-200 rounded-md hover:bg-gray-300"><i data-lucide="copy" class="w-4 h-4 pointer-events-none"></i></button></div><button data-action="save-ai-result" class="w-full flex items-center justify-center space-x-2 bg-green-600 text-white font-semibold py-2.5 rounded-lg hover:bg-green-700">Сохранить как документ в дело</button></div></div></div></div></div>
         </main>
-    </div>
-    
-    <!-- Modals -->
-    <div id="addCaseModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
-        <form id="addCaseForm" class="bg-white rounded-xl shadow-2xl w-full max-w-lg m-4">
-            <div class="p-6 border-b flex justify-between items-center">
-                <h3 class="text-xl font-bold">Создание нового дела</h3>
-                <button type="button" class="close-modal-btn text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
-            </div>
-            <div class="p-6 space-y-4">
-                <input name="court" type="text" placeholder="Наименование суда" class="w-full px-3 py-2 border rounded-lg" required>
-                <input name="caseNumber" type="text" placeholder="Номер дела" class="w-full px-3 py-2 border rounded-lg" required>
-                <input name="plaintiff" type="text" placeholder="Истец" class="w-full px-3 py-2 border rounded-lg" required>
-                <input name="defendant" type="text" placeholder="Ответчик" class="w-full px-3 py-2 border rounded-lg" required>
-            </div>
-            <div class="p-6 bg-gray-50 rounded-b-xl flex justify-end space-x-3">
-                <button type="button" class="close-modal-btn px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">Отмена</button>
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold hover:bg-blue-700 rounded-lg">Создать дело</button>
-            </div>
-        </form>
-    </div>
-    <div id="editCaseModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
-        <form id="editCaseForm" class="bg-white rounded-xl shadow-2xl w-full max-w-lg m-4">
-            <div class="p-6 border-b flex justify-between items-center">
-                <h3 class="text-xl font-bold">Редактирование дела</h3>
-                <button type="button" class="close-modal-btn text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
-            </div>
-            <div class="p-6 space-y-4">
-                <input type="hidden" name="caseId">
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">Наименование суда</label><input name="court" type="text" class="w-full px-3 py-2 border rounded-lg" required></div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">Номер дела</label><input name="caseNumber" type="text" class="w-full px-3 py-2 border rounded-lg" required></div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">Истец</label><input name="plaintiff" type="text" class="w-full px-3 py-2 border rounded-lg" required></div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">Ответчик</label><input name="defendant" type="text" class="w-full px-3 py-2 border rounded-lg" required></div>
-            </div>
-            <div class="p-6 bg-gray-50 rounded-b-xl flex justify-end space-x-3">
-                <button type="button" class="close-modal-btn px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">Отмена</button>
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold hover:bg-blue-700 rounded-lg">Сохранить изменения</button>
-            </div>
-        </form>
-    </div>
-    <div id="adminModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl m-4 flex flex-col" style="height: 80vh;">
-            <div class="p-6 border-b flex justify-between items-center">
-                <h3 class="text-xl font-bold">Панель администратора</h3>
-                <button type="button" class="close-modal-btn text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
-            </div>
-            <div class="p-6 flex-grow overflow-y-auto">
-                <h4 class="font-semibold mb-4">Заявки на регистрацию в ожидании</h4>
-                <div id="pending-users-list" class="space-y-3"></div>
-            </div>
-        </div>
+        <main id="calendar-view" class="p-4 hidden"><div class="bg-white rounded-xl shadow-sm p-4"><div id="calendar-container"></div></div></main>
     </div>
 
-    <input type="file" id="file-upload-input" class="hidden" />
+    <!-- === МОДАЛЬНЫЕ ОКНА === -->
+    <div id="profileModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop"><form id="profileForm" class="bg-white rounded-xl shadow-2xl w-full max-w-lg m-4"><div class="p-6 border-b flex justify-between items-center"><h3 class="text-xl font-bold">Личный кабинет</h3><button type="button" data-action="close-modal" class="text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button></div><div class="p-6 space-y-4"><input type="hidden" name="userId"><label class="block text-sm font-medium text-gray-700">Email</label><p id="profile-email" class="mt-1 text-gray-800"></p><label class="block text-sm font-medium text-gray-700">Дата регистрации</label><p id="profile-createdAt" class="mt-1 text-gray-800"></p><label for="profile-position" class="block text-sm font-medium text-gray-700">Должность</label><input type="text" id="profile-position" name="position" class="w-full px-3 py-2 border rounded-lg mt-1" readonly></div><div id="profile-admin-footer" class="p-6 bg-gray-50 rounded-b-xl flex justify-end space-x-3 hidden"><button type="button" data-action="close-modal" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">Закрыть</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold hover:bg-blue-700 rounded-lg">Сохранить</button></div></form></div>
+    <div id="adminModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop"><div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl m-4 flex flex-col" style="height: 80vh;"><div class="p-6 border-b flex justify-between items-center"><h3 class="text-xl font-bold">Панель администратора</h3><button type="button" data-action="close-modal" class="text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button></div><div class="p-6 flex-grow overflow-y-auto"><div class="flex space-x-4 mb-4 border-b pb-4"><h4 class="font-semibold">Заявки на регистрацию:</h4><button data-action="show-logs" class="text-sm font-medium text-blue-600 hover:underline">Показать логи действий</button></div><div id="pending-users-list" class="space-y-3"></div></div></div></div>
+    <div id="logsModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop"><div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl m-4 flex flex-col" style="height: 80vh;"><div class="p-6 border-b flex justify-between items-center"><h3 class="text-xl font-bold">Логи действий пользователей</h3><button type="button" data-action="close-modal" class="text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button></div><div class="p-6 flex-grow overflow-y-auto"><table class="w-full text-sm"><thead class="bg-gray-50"><tr><th class="p-2 text-left">Время</th><th class="p-2 text-left">Пользователь</th><th class="p-2 text-left">Действие</th><th class="p-2 text-left">Детали</th></tr></thead><tbody id="logs-list"></tbody></table></div></div></div>
+    <div id="eventModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop"><form id="eventForm" class="bg-white rounded-xl shadow-2xl w-full max-w-lg m-4"><div class="p-6 border-b flex justify-between items-center"><h3 id="event-modal-title" class="text-xl font-bold">Новое событие</h3><button type="button" data-action="close-modal" class="text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button></div><div class="p-6 space-y-4"><input type="hidden" name="eventId"><label class="block text-sm font-medium">Название события</label><input name="title" type="text" class="w-full px-3 py-2 border rounded-lg" required><label class="block text-sm font-medium">Дата начала</label><input name="start" type="datetime-local" class="w-full px-3 py-2 border rounded-lg" required><label class="block text-sm font-medium">Дата окончания</label><input name="end" type="datetime-local" class="w-full px-3 py-2 border rounded-lg"><label class="block text-sm font-medium">Привязать к делу</label><select name="caseLink" class="w-full px-3 py-2 border rounded-lg"><option value="">Не привязывать</option></select><label class="block text-sm font-medium">Описание</label><textarea name="description" class="w-full px-3 py-2 border rounded-lg h-24"></textarea></div><div class="p-6 bg-gray-50 rounded-b-xl flex justify-between items-center"><button data-action="delete-event" type="button" class="px-4 py-2 bg-red-100 text-red-700 font-semibold hover:bg-red-200 rounded-lg hidden">Удалить</button><div><button type="button" data-action="close-modal" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">Отмена</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold hover:bg-blue-700 rounded-lg ml-2">Сохранить</button></div></div></form></div>
+    <div id="addCaseModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop"><form id="addCaseForm" class="bg-white rounded-xl shadow-2xl w-full max-w-lg m-4"><div class="p-6 border-b flex justify-between items-center"><h3 class="text-xl font-bold">Создание нового дела</h3><button type="button" data-action="close-modal" class="text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button></div><div class="p-6 space-y-4"><input name="court" type="text" placeholder="Наименование суда" class="w-full px-3 py-2 border rounded-lg" required><input name="caseNumber" type="text" placeholder="Номер дела" class="w-full px-3 py-2 border rounded-lg" required><input name="plaintiff" type="text" placeholder="Истец" class="w-full px-3 py-2 border rounded-lg" required><input name="defendant" type="text" placeholder="Ответчик" class="w-full px-3 py-2 border rounded-lg" required></div><div class="p-6 bg-gray-50 rounded-b-xl flex justify-end space-x-3"><button type="button" data-action="close-modal" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">Отмена</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold hover:bg-blue-700 rounded-lg">Создать дело</button></div></form></div>
+    <div id="editCaseModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop"><form id="editCaseForm" class="bg-white rounded-xl shadow-2xl w-full max-w-lg m-4"><div class="p-6 border-b flex justify-between items-center"><h3 class="text-xl font-bold">Редактирование дела</h3><button type="button" data-action="close-modal" class="text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button></div><div class="p-6 space-y-4"><input type="hidden" name="caseId"><label class="block text-sm font-medium text-gray-700 mb-1">Наименование суда</label><input name="court" type="text" class="w-full px-3 py-2 border rounded-lg" required><label class="block text-sm font-medium text-gray-700 mb-1">Номер дела</label><input name="caseNumber" type="text" class="w-full px-3 py-2 border rounded-lg" required><label class="block text-sm font-medium text-gray-700 mb-1">Истец</label><input name="plaintiff" type="text" class="w-full px-3 py-2 border rounded-lg" required><label class="block text-sm font-medium text-gray-700 mb-1">Ответчик</label><input name="defendant" type="text" class="w-full px-3 py-2 border rounded-lg" required></div><div class="p-6 bg-gray-50 rounded-b-xl flex justify-end space-x-3"><button type="button" data-action="close-modal" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">Отмена</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold hover:bg-blue-700 rounded-lg">Сохранить</button></div></form></div>
+    <input type="file" id="file-upload-input" class="hidden" multiple />
 
+    <!-- === СКРИПТЫ === -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, addDoc, onSnapshot, deleteDoc, query, serverTimestamp, orderBy, setDoc, getDoc, where, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, addDoc, onSnapshot, deleteDoc, query, serverTimestamp, orderBy, setDoc, getDoc, where, updateDoc, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         const UPLOADCARE_PUBLIC_KEY = "c11e2f44c08fb325487c";
-        const firebaseConfig = {
-            apiKey: "AIzaSyA26SkUJJi4iSo82SWnpyDi8fMrh5o7msk",
-            authDomain: "lawyer42-2025.firebaseapp.com",
-            projectId: "lawyer42-2025",
-            storageBucket: "lawyer42-2025.appspot.com",
-            messagingSenderId: "300771066344",
-            appId: "1:300771066344:web:6d36b6c5395e660f86a45d",
-            measurementId: "G-SJEBS5J5LH"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyA26SkUJJi4iSo82SWnpyDi8fMrh5o7msk", authDomain: "lawyer42-2025.firebaseapp.com", projectId: "lawyer42-2025", storageBucket: "lawyer42-2025.appspot.com", messagingSenderId: "300771066344", appId: "1:300771066344:web:6d36b6c5395e660f86a45d" };
         const ADMIN_EMAIL = "367475@gmail.com";
+        const GEMINI_API_KEY = "AIzaSyDFGlsAGJLyU2VrgYdLLlFkCY-61zGgVy8";
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        let calendar;
 
-        let currentUser = null;
-        let selectedCaseId = null;
-        let selectedDocId = null;
-        let casesUnsubscribe = () => {};
-        let docsUnsubscribe = () => {};
-        let casesCache = [];
-        let isLoginMode = true;
+        let currentUser = null, currentUserData = null, selectedCaseId = null, casesCache = [], docsCache = [], isLoginMode = true, currentView = 'cases';
+        let casesUnsubscribe = () => {}, docsUnsubscribe = () => {};
 
         const ui = {
-            authScreen: document.getElementById('auth-screen'),
-            mainApp: document.getElementById('main-app'),
-            authForm: document.getElementById('auth-form'),
-            authMessage: document.getElementById('auth-message'),
-            toggleAuthModeBtn: document.getElementById('toggle-auth-mode'),
-            authSubmitBtn: document.getElementById('auth-submit-btn'),
-            adminPanelBtn: document.getElementById('admin-panel-btn'),
-            userEmailEl: document.getElementById('user-email'),
-            caseList: document.getElementById('case-list'),
-            documentList: document.getElementById('document-list'),
-            uploadDocBtn: document.getElementById('uploadDocBtn'),
-            fileUploadInput: document.getElementById('file-upload-input'),
-            currentCaseTitle: document.getElementById('current-case-title'),
-            noDocsPlaceholder: document.getElementById('no-docs-placeholder'),
-            caseListLoader: document.getElementById('case-list-loader'),
-            aiContent: document.getElementById('ai-content'),
-            aiLoader: document.getElementById('ai-loader'),
-            noDocSelectedPlaceholder: document.getElementById('no-doc-selected-placeholder'),
-            addCaseModal: document.getElementById('addCaseModal'),
-            addCaseForm: document.getElementById('addCaseForm'),
-            editCaseModal: document.getElementById('editCaseModal'),
-            editCaseForm: document.getElementById('editCaseForm'),
-            adminModal: document.getElementById('adminModal'),
-            pendingUsersList: document.getElementById('pending-users-list'),
+            authScreen: document.getElementById('auth-screen'), mainApp: document.getElementById('main-app'), casesView: document.getElementById('cases-view'), calendarView: document.getElementById('calendar-view'), authForm: document.getElementById('auth-form'), authMessage: document.getElementById('auth-message'), toggleAuthModeBtn: document.getElementById('toggle-auth-mode'), userEmail: document.getElementById('user-email'), adminPanelBtn: document.querySelector('[data-action="open-admin-panel"]'), caseList: document.getElementById('case-list'), caseCount: document.getElementById('case-count'), caseListLoader: document.getElementById('case-list-loader'), currentCaseTitle: document.getElementById('current-case-title'), docsContainer: document.getElementById('docs-container'), noDocsPlaceholder: document.getElementById('no-docs-placeholder'), uploadDocBtn: document.querySelector('[data-action="upload-doc"]'), addFolderBtn: document.querySelector('[data-action="add-folder"]'), fileUploadInput: document.getElementById('file-upload-input'), aiTabButtons: document.querySelectorAll('.ai-tab-btn'), analysisTabContent: document.getElementById('analysis-tab-content'), tasksTabContent: document.getElementById('tasks-tab-content'), aiLoader: document.getElementById('ai-loader'), aiPlaceholder: document.getElementById('ai-placeholder'), aiAnalysisResults: document.getElementById('ai-analysis-results'), aiTaskInput: document.getElementById('ai-task-input'), aiExecuteTaskBtn: document.querySelector('[data-action="execute-ai-task"]'), aiTaskResultContainer: document.getElementById('ai-task-result-container'), aiTaskResultOutput: document.getElementById('ai-task-result-output'), addCaseModal: document.getElementById('addCaseModal'), addCaseForm: document.getElementById('addCaseForm'), editCaseModal: document.getElementById('editCaseModal'), editCaseForm: document.getElementById('editCaseForm'), adminModal: document.getElementById('adminModal'), pendingUsersList: document.getElementById('pending-users-list'), profileModal: document.getElementById('profileModal'), profileForm: document.getElementById('profileForm'), profileEmail: document.getElementById('profile-email'), profileCreatedAt: document.getElementById('profile-createdAt'), profilePosition: document.getElementById('profile-position'), profileAdminFooter: document.getElementById('profile-admin-footer'), logsModal: document.getElementById('logsModal'), logsList: document.getElementById('logs-list'), eventModal: document.getElementById('eventModal'), eventForm: document.getElementById('eventForm'), eventModalTitle: document.getElementById('event-modal-title'),
         };
 
-        function toggleAuthMode() {
-            isLoginMode = !isLoginMode;
-            ui.authMessage.textContent = '';
-            ui.authForm.reset();
-            ui.authSubmitBtn.textContent = isLoginMode ? 'Войти' : 'Зарегистрироваться';
-            ui.toggleAuthModeBtn.textContent = isLoginMode ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти';
+        async function logAction(action, details = {}) {
+            if (!currentUser) return;
+            try { await addDoc(collection(db, 'logs'), { timestamp: serverTimestamp(), userEmail: currentUser.email, userId: currentUser.uid, action, details }); } 
+            catch (error) { console.error("Ошибка логирования:", error); }
         }
 
-        ui.authForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = ui.authForm.email.value;
-            const password = ui.authForm.password.value;
-            ui.authMessage.textContent = '';
-            ui.authMessage.className = 'text-sm h-4';
-            try {
-                if (isLoginMode) {
-                    await signInWithEmailAndPassword(auth, email, password);
-                } else {
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    await setDoc(doc(db, "users", userCredential.user.uid), {
-                        email: userCredential.user.email,
-                        status: "pending",
-                        createdAt: serverTimestamp()
-                    });
-                    await signOut(auth);
-                    ui.authMessage.textContent = 'Спасибо! Ваша заявка отправлена на рассмотрение.';
-                    ui.authMessage.classList.add('text-green-600');
-                }
-            } catch (error) {
-                ui.authMessage.classList.add('text-red-600');
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                     ui.authMessage.textContent = 'Неверный email или пароль.';
-                } else if (error.code === 'auth/email-already-in-use') {
-                    ui.authMessage.textContent = 'Этот email уже используется.';
-                } else {
-                    ui.authMessage.textContent = 'Произошла ошибка. Попробуйте снова.';
-                }
-            }
-        });
-
-        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
-        ui.toggleAuthModeBtn.addEventListener('click', toggleAuthMode);
-
         onAuthStateChanged(auth, async (user) => {
+            if (casesUnsubscribe) casesUnsubscribe();
+            if (docsUnsubscribe) docsUnsubscribe();
             if (user) {
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (user.email === ADMIN_EMAIL || (userDoc.exists() && userDoc.data().status === 'approved')) {
-                    showMainApp(user);
-                } else {
-                    await signOut(auth);
-                    ui.authMessage.textContent = 'Ваша учетная запись ожидает одобрения.';
-                    ui.authMessage.className = 'text-sm h-4 text-yellow-600';
-                }
+                try {
+                    const userDocRef = doc(db, "users", user.uid);
+                    const userDoc = await getDoc(userDocRef);
+                    if (user.email === ADMIN_EMAIL || (userDoc.exists() && userDoc.data().status === 'approved')) {
+                        currentUser = user;
+                        currentUserData = userDoc.exists() ? { id: userDoc.id, ...userDoc.data() } : { id: user.uid, email: user.email, status: 'admin' };
+                        showMainApp();
+                    } else { await signOut(auth); ui.authMessage.textContent = 'Ваша учетная запись ожидает одобрения.'; ui.authMessage.className = 'text-sm h-4 text-yellow-600'; }
+                } catch (error) { console.error("Ошибка при проверке статуса пользователя:", error); await signOut(auth); }
             } else {
-                currentUser = null;
-                ui.authScreen.classList.remove('hidden');
-                ui.mainApp.classList.add('hidden');
-                if(casesUnsubscribe) casesUnsubscribe();
-                if(docsUnsubscribe) docsUnsubscribe();
+                currentUser = null; currentUserData = null;
+                ui.authScreen.style.display = 'flex';
+                ui.mainApp.style.display = 'none';
             }
         });
 
-        function showMainApp(user) {
-            currentUser = user;
-            ui.authScreen.classList.add('hidden');
-            ui.mainApp.classList.remove('hidden');
-            ui.userEmailEl.textContent = user.email;
-            ui.adminPanelBtn.classList.toggle('hidden', user.email !== ADMIN_EMAIL);
-            lucide.createIcons();
+        function showMainApp() {
+            ui.authScreen.style.display = 'none';
+            ui.mainApp.style.display = 'block';
+            ui.userEmail.textContent = currentUser.email;
+            ui.adminPanelBtn.classList.toggle('hidden', currentUser.email !== ADMIN_EMAIL);
             listenToCases();
+            initializeCalendar();
+            lucide.createIcons();
+        }
+
+        function initializeCalendar() {
+            if (calendar) calendar.destroy();
+            const calendarEl = document.getElementById('calendar-container');
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth', locale: 'ru',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' },
+                buttonText: { today: 'Сегодня', month: 'Месяц', week: 'Неделя', list: 'Список' },
+                events: (info, success, failure) => {
+                    onSnapshot(query(collection(db, "events")), (snapshot) => {
+                        const events = snapshot.docs.map(docSnap => {
+                            const data = docSnap.data();
+                            if (!data.start || !data.start.toDate) return null;
+                            return { id: docSnap.id, title: data.title, start: data.start.toDate(), end: data.end ? data.end.toDate() : null, extendedProps: { description: data.description, caseLink: data.caseLink } };
+                        }).filter(Boolean);
+                        success(events);
+                    }, failure);
+                },
+                dateClick: (info) => openEventModal({ startStr: info.dateStr }),
+                eventClick: (info) => openEventModal({ id: info.event.id, title: info.event.title, start: info.event.startStr.slice(0, 16), end: info.event.endStr ? info.event.endStr.slice(0, 16) : '', description: info.event.extendedProps.description || '', caseLink: info.event.extendedProps.caseLink || '' })
+            });
+        }
+
+        function openEventModal(data = {}) {
+            ui.eventForm.reset();
+            populateCaseDropdown(ui.eventForm.caseLink);
+            const deleteBtn = ui.eventForm.querySelector('[data-action="delete-event"]');
+            if (data.id) {
+                ui.eventModalTitle.textContent = "Редактировать событие";
+                ui.eventForm.eventId.value = data.id;
+                ui.eventForm.title.value = data.title;
+                ui.eventForm.start.value = data.start;
+                ui.eventForm.end.value = data.end;
+                ui.eventForm.description.value = data.description;
+                ui.eventForm.caseLink.value = data.caseLink;
+                deleteBtn.style.display = 'block';
+            } else {
+                ui.eventModalTitle.textContent = "Новое событие";
+                ui.eventForm.start.value = data.startStr ? data.startStr.slice(0, 16) : '';
+                deleteBtn.style.display = 'none';
+            }
+            ui.eventModal.style.display = 'flex';
         }
 
         function listenToCases() {
             ui.caseListLoader.style.display = 'flex';
-            if(casesUnsubscribe) casesUnsubscribe();
             const q = query(collection(db, 'cases'), orderBy('createdAt', 'desc'));
             casesUnsubscribe = onSnapshot(q, snapshot => {
                 casesCache = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                ui.caseCount.textContent = casesCache.length;
                 renderCaseList(casesCache);
-                ui.caseListLoader.style.display = 'none';
-            }, error => {
-                console.error("Error listening to cases:", error);
                 ui.caseListLoader.style.display = 'none';
             });
         }
-        
+
         function renderCaseList(cases) {
-            document.getElementById('case-count').textContent = cases.length;
-            ui.caseList.innerHTML = '';
-            if (cases.length === 0) {
-                 ui.caseList.innerHTML = `<li class="p-4 text-center text-gray-500">Дела отсутствуют.</li>`;
-                 return;
-            }
+            ui.caseList.innerHTML = cases.length ? '' : `<li class="p-4 text-center text-gray-500">Дела отсутствуют.</li>`;
             cases.forEach(c => {
-                 const li = document.createElement('li');
+                const li = document.createElement('li');
                 li.className = `p-3 rounded-lg cursor-pointer border-2 group relative transition-colors ${selectedCaseId === c.id ? 'bg-blue-50 border-blue-500' : 'border-transparent hover:bg-gray-100'}`;
-                li.dataset.action = "select-case";
-                li.dataset.caseId = c.id;
-                li.innerHTML = `
-                    <div class="font-semibold text-gray-800 pointer-events-none">${c.caseNumber}</div>
-                    <div class="text-sm text-gray-600 truncate pointer-events-none">${c.plaintiff} vs ${c.defendant}</div>
-                    <div class="text-xs text-gray-400 mt-1 truncate pointer-events-none">Добавил: ${c.creatorEmail}</div>
-                    <div class="absolute top-2 right-2 flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button data-action="edit-case" data-case-id="${c.id}" class="p-1 rounded-full bg-gray-200 text-gray-600 hover:bg-blue-500 hover:text-white"><i data-lucide="pencil" class="w-4 h-4 pointer-events-none"></i></button>
-                        <button data-action="delete-case" data-case-id="${c.id}" class="p-1 rounded-full bg-gray-200 text-gray-600 hover:bg-red-500 hover:text-white"><i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i></button>
-                    </div>`;
+                li.dataset.action = "select-case"; li.dataset.caseId = c.id;
+                li.innerHTML = `<div class="font-semibold text-gray-800 pointer-events-none">${c.caseNumber}</div><div class="text-sm text-gray-600 truncate pointer-events-none">${c.plaintiff} vs ${c.defendant}</div><div class="text-xs text-gray-400 mt-1 truncate pointer-events-none">Добавил: ${c.creatorEmail}</div><div class="absolute top-2 right-2 flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity"><button data-action="edit-case" data-case-id="${c.id}" class="p-1 rounded-full bg-gray-200 text-gray-600 hover:bg-blue-500 hover:text-white"><i data-lucide="pencil" class="w-4 h-4 pointer-events-none"></i></button><button data-action="delete-case" data-case-id="${c.id}" class="p-1 rounded-full bg-gray-200 text-gray-600 hover:bg-red-500 hover:text-white"><i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i></button></div>`;
                 ui.caseList.appendChild(li);
             });
             lucide.createIcons();
@@ -297,114 +207,173 @@
 
         function selectCase(caseId) {
             selectedCaseId = caseId;
-            selectedDocId = null; 
-            document.querySelectorAll('#case-list li').forEach(li => {
-                li.classList.toggle('bg-blue-50', li.dataset.caseId === caseId);
-                li.classList.toggle('border-blue-500', li.dataset.caseId === caseId);
-            });
+            document.querySelectorAll('#case-list li').forEach(li => { li.classList.toggle('bg-blue-50', li.dataset.caseId === caseId); li.classList.toggle('border-blue-500', li.dataset.caseId === caseId); });
             const caseData = casesCache.find(c => c.id === caseId);
             ui.currentCaseTitle.textContent = caseData ? caseData.caseNumber : '...';
-            ui.uploadDocBtn.disabled = false;
-            renderAiAnalysis(null);
+            ui.uploadDocBtn.disabled = false; ui.addFolderBtn.disabled = false; ui.aiExecuteTaskBtn.disabled = false;
             listenToDocuments(caseId);
+            analyzeCase();
         }
 
         function listenToDocuments(caseId) {
-            if(docsUnsubscribe) docsUnsubscribe();
+            if (docsUnsubscribe) docsUnsubscribe();
             const q = query(collection(db, 'cases', caseId, 'documents'), orderBy('createdAt', 'asc'));
             docsUnsubscribe = onSnapshot(q, snapshot => {
-                const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderDocumentList(docs);
+                docsCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderDocumentList(docsCache);
             });
         }
 
         function renderDocumentList(docs) {
-            ui.documentList.innerHTML = '';
-            ui.noDocsPlaceholder.classList.toggle('hidden', docs.length > 0);
-            docs.forEach((doc, index) => {
-                const tr = document.createElement('tr');
-                tr.className = `border-b hover:bg-gray-50 cursor-pointer transition-colors ${selectedDocId === doc.id ? 'bg-blue-50' : ''}`;
-                tr.dataset.action = "select-doc";
-                tr.dataset.docId = doc.id;
-                tr.dataset.docData = JSON.stringify(doc);
-                tr.innerHTML = `<td class="p-4 pointer-events-none">${index + 1}</td><td class="p-4 font-medium text-blue-600 pointer-events-none">${doc.name}</td><td class="p-4 text-sm text-gray-500 pointer-events-none">${doc.creatorEmail}</td>
-                <td class="p-4">
-                    <div class="flex items-center justify-center space-x-2">
-                        <a href="${doc.downloadURL}" target="_blank" class="p-1 rounded-md text-gray-500 hover:text-blue-600" title="Открыть"><i data-lucide="eye" class="w-4 h-4 pointer-events-none"></i></a>
-                        <a href="${doc.downloadURL}" download="${doc.name}" class="p-1 rounded-md text-gray-500 hover:text-green-600" title="Скачать"><i data-lucide="download" class="w-4 h-4 pointer-events-none"></i></a>
-                        <button data-action="delete-doc" data-doc-id="${doc.id}" class="p-1 rounded-md text-gray-500 hover:text-red-600" title="Удалить"><i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i></button>
-                    </div>
-                </td>`;
-                ui.documentList.appendChild(tr);
+            ui.docsContainer.innerHTML = '';
+            ui.noDocsPlaceholder.style.display = docs.length ? 'none' : 'flex';
+            if (!docs.length) ui.docsContainer.appendChild(ui.noDocsPlaceholder);
+            const folders = docs.filter(d => d.type === 'folder');
+            const rootFiles = docs.filter(d => d.type !== 'folder' && !d.folderId);
+            folders.forEach(folder => renderFolder(folder, docs));
+            rootFiles.forEach(file => ui.docsContainer.appendChild(createDocElement(file)));
+            lucide.createIcons();
+        }
+        
+        function renderFolder(folder, allDocs) {
+            const folderElement = document.createElement('div');
+            folderElement.innerHTML = `<details class="group"><summary class="flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-gray-100"><div class="flex items-center space-x-2"><i data-lucide="folder" class="w-5 h-5 text-yellow-500"></i><span class="font-medium">${folder.name}</span></div><i data-lucide="chevron-right" class="w-4 h-4 transition-transform group-open:rotate-90"></i></summary><div class="pl-6 pt-2 space-y-2"></div></details>`;
+            const contentDiv = folderElement.querySelector('.pl-6');
+            const filesInFolder = allDocs.filter(d => d.folderId === folder.id);
+            filesInFolder.forEach(file => contentDiv.appendChild(createDocElement(file)));
+            ui.docsContainer.appendChild(folderElement);
+        }
+
+        function createDocElement(doc) {
+            const el = document.createElement('div');
+            el.className = 'flex items-center justify-between p-2 rounded-lg hover:bg-blue-50';
+            const icon = doc.name.endsWith('.pdf') ? 'file-text' : doc.name.match(/\.(jpg|jpeg|png)$/i) ? 'image' : 'file';
+            el.innerHTML = `<div class="flex items-center space-x-2"><i data-lucide="${icon}" class="w-5 h-5 text-gray-500"></i><a href="${doc.downloadURL}" target="_blank" class="text-blue-600 hover:underline">${doc.name}</a></div><button data-action="delete-doc" data-doc-id="${doc.id}" class="p-1 rounded-md text-gray-500 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i></button>`;
+            return el;
+        }
+
+        async function analyzeCase() {
+            if (!selectedCaseId) { ui.aiPlaceholder.style.display = 'flex'; ui.aiAnalysisResults.classList.add('hidden'); return; }
+            ui.aiPlaceholder.style.display = 'none'; ui.aiLoader.style.display = 'flex'; ui.aiAnalysisResults.classList.add('hidden');
+            const caseData = casesCache.find(c => c.id === selectedCaseId);
+            const documentsText = docsCache.map((d, i) => `Документ ${i+1}: "${d.name}" (тип: ${d.type || 'файл'})`).join('\n');
+            const prompt = `Ты — высококвалифицированный юрист-ассистент в России. Проведи комплексный правовой анализ дела №${caseData.caseNumber} (Истец: ${caseData.plaintiff}, Ответчик: ${caseData.defendant}). В деле есть документы:\n${documentsText || 'Документы отсутствуют'}.\nЗАДАЧА: 1. **Общий вывод:** краткое резюме и перспективы. 2. **Ключевые риски:** 3-4 риска для истца. 3. **Рекомендации:** 3-4 шага со ссылками на законы РФ. 4. **Недостающие документы:** что еще нужно? Ответ должен быть структурирован.`;
+            try {
+                const resultText = await callGemini(prompt);
+                ui.aiAnalysisResults.innerHTML = `<div class="prose">${resultText.replace(/\n/g, '<br>')}</div>`;
+            } catch (error) { ui.aiAnalysisResults.innerHTML = `<p class="text-red-500">Ошибка анализа: ${error.message}</p>`; } 
+            finally { ui.aiLoader.style.display = 'none'; ui.aiAnalysisResults.classList.remove('hidden'); }
+        }
+
+        async function callGemini(prompt) {
+            const payload = { contents: [{ parts: [{ text: prompt }] }] };
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+            const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (!response.ok) { const errorBody = await response.text(); throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`); }
+            const result = await response.json();
+            if (result.candidates && result.candidates.length > 0) return result.candidates[0].content.parts[0].text;
+            throw new Error("Нет ответа от Gemini.");
+        }
+        
+        async function uploadFiles(files, folderId = null) {
+            if (!selectedCaseId || !files.length) return;
+            ui.uploadDocBtn.disabled = true;
+            for (const file of files) {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('UPLOADCARE_PUB_KEY', UPLOADCARE_PUBLIC_KEY);
+                formData.append('UPLOADCARE_STORE', 'auto');
+                try {
+                    const response = await fetch(`https://upload.uploadcare.com/base/`, { method: 'POST', body: formData });
+                    if (!response.ok) throw new Error('Uploadcare upload failed');
+                    const data = await response.json();
+                    const newDoc = { name: file.name, downloadURL: `https://ucarecdn.com/${data.file}/${file.name}`, createdAt: serverTimestamp(), creatorEmail: currentUser.email, folderId };
+                    await addDoc(collection(db, 'cases', selectedCaseId, 'documents'), newDoc);
+                    await logAction('doc_uploaded', { caseId: selectedCaseId, name: file.name });
+                } catch (error) { console.error("Upload error:", error); alert('Ошибка загрузки файла.'); }
+            }
+            ui.uploadDocBtn.disabled = false;
+        }
+
+        function populateCaseDropdown(selectElement) {
+            selectElement.innerHTML = '<option value="">Не привязывать</option>';
+            casesCache.forEach(c => {
+                const option = document.createElement('option');
+                option.value = c.id;
+                option.textContent = c.caseNumber;
+                selectElement.appendChild(option);
             });
-            lucide.createIcons();
         }
+        
+        // --- ГЛАВНЫЙ ОБРАБОТЧИК СОБЫТИЙ (ДЕЛЕГИРОВАНИЕ) ---
+        document.body.addEventListener('click', async (e) => {
+            const target = e.target.closest('[data-action]');
+            if (!target) return;
 
-        function renderAiAnalysis(docData) {
-            ui.aiContent.innerHTML = ''; 
-            ui.noDocSelectedPlaceholder.style.display = 'none';
-            ui.aiLoader.style.display = 'none';
+            const action = target.dataset.action;
+            const caseId = target.closest('[data-case-id]')?.dataset.caseId;
+            const docId = target.closest('[data-doc-id]')?.dataset.docId;
+            const uid = target.closest('[data-uid]')?.dataset.uid;
 
-            if (!docData) {
-                ui.noDocSelectedPlaceholder.style.display = 'flex';
-                ui.aiContent.appendChild(ui.noDocSelectedPlaceholder);
-                return;
-            }
-            const analysis = docData.aiAnalysis || { analyzed: false };
-            if (analysis.analyzed) {
-                ui.aiContent.innerHTML = `
-                    <div class="bg-blue-50 p-4 rounded-lg">
-                        <h3 class="font-bold text-blue-800">Краткая характеристика</h3>
-                        <p class="mt-1 text-sm text-blue-900">${analysis.summary || 'Нет данных.'}</p>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-gray-800 mb-2">Ключевые моменты</h3>
-                        <ul class="space-y-2">
-                            ${(analysis.keyPoints || []).map(p => `<li class="flex items-start"><i data-lucide="check-circle-2" class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0"></i><span class="text-sm">${p}</span></li>`).join('')}
-                        </ul>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-gray-800 mb-2">Предлагаемые действия</h3>
-                        <ul class="space-y-2">
-                             ${(analysis.suggestions || []).map(s => `<li class="flex items-start"><i data-lucide="lightbulb" class="w-5 h-5 text-yellow-500 mr-2 mt-0.5 flex-shrink-0"></i><span class="text-sm">${s}</span></li>`).join('')}
-                        </ul>
-                    </div>
-                `;
-            } else {
-                ui.aiContent.innerHTML = `
-                    <div class="text-center p-4">
-                        <p class="text-gray-600 mb-4">Получите краткую сводку по документу с помощью ИИ.</p>
-                        <button data-action="analyze-doc" data-doc-id="${docData.id}" data-doc-name="${docData.name}" class="w-full flex items-center justify-center space-x-2 bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 transition-colors">
-                            <span>✨ Проанализировать документ</span>
-                        </button>
-                    </div>
-                `;
-            }
-            lucide.createIcons();
-        }
-
-        ui.caseList.addEventListener('click', async e => {
-            const targetElement = e.target.closest('[data-action]');
-            if (!targetElement) return;
-
-            e.stopPropagation();
-            const action = targetElement.dataset.action;
-            const caseId = targetElement.dataset.caseId;
-
-            switch (action) {
-                case 'select-case':
-                    selectCase(caseId);
+            switch(action) {
+                case 'logout': signOut(auth); break;
+                case 'toggle-auth-mode':
+                    isLoginMode = !isLoginMode;
+                    ui.authMessage.textContent = ''; ui.authForm.reset();
+                    ui.authForm.querySelector('button').textContent = isLoginMode ? 'Войти' : 'Зарегистрироваться';
+                    ui.toggleAuthModeBtn.textContent = isLoginMode ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти';
                     break;
-                case 'delete-case':
-                    if (confirm(`Вы уверены, что хотите удалить это дело?`)) {
-                        try {
-                            await deleteDoc(doc(db, 'cases', caseId));
-                        } catch (err) {
-                            console.error("Delete case error:", err);
-                            alert("Не удалось удалить дело.");
-                        }
-                    }
+                case 'toggle-view':
+                    currentView = (currentView === 'cases') ? 'calendar' : 'cases';
+                    ui.casesView.style.display = currentView === 'cases' ? 'grid' : 'none';
+                    ui.calendarView.style.display = currentView === 'calendar' ? 'block' : 'none';
+                    target.innerHTML = currentView === 'cases' ? '<i data-lucide="calendar" class="w-4 h-4"></i><span>Календарь</span>' : '<i data-lucide="briefcase" class="w-4 h-4"></i><span>К делам</span>';
+                    if (currentView === 'calendar') calendar.render();
+                    lucide.createIcons();
                     break;
+                case 'open-profile':
+                    ui.profileEmail.textContent = currentUserData.email;
+                    ui.profileCreatedAt.textContent = currentUserData.createdAt?.toDate().toLocaleDateString('ru-RU') || 'Неизвестно';
+                    ui.profilePosition.value = currentUserData.position || '';
+                    ui.profileForm.userId.value = currentUserData.id;
+                    const isAdmin = currentUser.email === ADMIN_EMAIL;
+                    ui.profilePosition.readOnly = !isAdmin;
+                    ui.profileAdminFooter.style.display = isAdmin ? 'flex' : 'none';
+                    ui.profileModal.style.display = 'flex';
+                    break;
+                case 'close-modal': target.closest('.modal-backdrop').style.display = 'none'; break;
+                case 'open-add-case-modal': ui.addCaseModal.style.display = 'flex'; break;
+                case 'open-admin-panel':
+                    ui.adminModal.style.display = 'flex';
+                    onSnapshot(query(collection(db, "users"), where("status", "==", "pending")), (snapshot) => {
+                        ui.pendingUsersList.innerHTML = snapshot.empty ? '<p class="text-gray-500">Новых заявок нет.</p>' : '';
+                        snapshot.forEach(userDoc => {
+                            const user = userDoc.data();
+                            const div = document.createElement('div');
+                            div.className = "flex items-center justify-between p-3 bg-gray-50 rounded-lg";
+                            div.innerHTML = `<div><p class="font-semibold">${user.email}</p></div><button data-action="approve-user" data-uid="${userDoc.id}" class="px-3 py-1 bg-green-500 text-white text-sm font-semibold rounded-md hover:bg-green-600">Одобрить</button>`;
+                            ui.pendingUsersList.appendChild(div);
+                        });
+                    });
+                    break;
+                case 'approve-user':
+                    await updateDoc(doc(db, "users", uid), { status: "approved" });
+                    await logAction('user_approved', { approvedUserId: uid });
+                    break;
+                case 'show-logs':
+                    ui.logsModal.style.display = 'flex';
+                    onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc")), snapshot => {
+                        ui.logsList.innerHTML = '';
+                        snapshot.forEach(logDoc => {
+                            const log = logDoc.data();
+                            const tr = document.createElement('tr');
+                            tr.className = 'border-b';
+                            tr.innerHTML = `<td class="p-2">${log.timestamp?.toDate().toLocaleString('ru-RU') || ''}</td><td class="p-2">${log.userEmail}</td><td class="p-2">${log.action}</td><td class="p-2 text-xs">${JSON.stringify(log.details)}</td>`;
+                            ui.logsList.appendChild(tr);
+                        });
+                    });
+                    break;
+                case 'select-case': selectCase(caseId); break;
                 case 'edit-case':
                     const caseToEdit = casesCache.find(c => c.id === caseId);
                     if (caseToEdit) {
@@ -413,214 +382,145 @@
                         ui.editCaseForm.caseNumber.value = caseToEdit.caseNumber;
                         ui.editCaseForm.plaintiff.value = caseToEdit.plaintiff;
                         ui.editCaseForm.defendant.value = caseToEdit.defendant;
-                        ui.editCaseModal.classList.remove('hidden');
+                        ui.editCaseModal.style.display = 'flex';
                     }
                     break;
-            }
-        });
-
-        ui.documentList.addEventListener('click', async (e) => {
-            const targetElement = e.target.closest('[data-action]');
-            if (!targetElement) return;
-
-            e.stopPropagation();
-            const action = targetElement.dataset.action;
-            const docId = targetElement.dataset.docId;
-
-            switch (action) {
-                case 'select-doc':
-                    selectedDocId = docId;
-                    document.querySelectorAll('#document-list tr').forEach(row => row.classList.remove('bg-blue-50'));
-                    targetElement.classList.add('bg-blue-50');
-                    renderAiAnalysis(JSON.parse(targetElement.dataset.docData));
+                case 'delete-case':
+                    if (confirm('Удалить дело и все документы?')) {
+                        const docsQuery = query(collection(db, 'cases', caseId, 'documents'));
+                        const docsSnapshot = await getDocs(docsQuery);
+                        const batch = writeBatch(db);
+                        docsSnapshot.forEach(docSnap => batch.delete(docSnap.ref));
+                        batch.delete(doc(db, 'cases', caseId));
+                        await batch.commit();
+                        await logAction('case_deleted', { caseId });
+                    }
+                    break;
+                case 'upload-doc': ui.fileUploadInput.click(); break;
+                case 'add-folder':
+                    const name = prompt("Введите название папки:");
+                    if (name && selectedCaseId) {
+                        const newFolder = { name, type: 'folder', createdAt: serverTimestamp(), creatorEmail: currentUser.email };
+                        await addDoc(collection(db, 'cases', selectedCaseId, 'documents'), newFolder);
+                        await logAction('folder_created', { caseId: selectedCaseId, name });
+                    }
                     break;
                 case 'delete-doc':
-                    if (confirm(`Вы уверены, что хотите удалить этот документ?`)) {
-                        try {
-                            if(selectedDocId === docId) {
-                                selectedDocId = null;
-                                renderAiAnalysis(null);
-                            }
-                            await deleteDoc(doc(db, 'cases', selectedCaseId, 'documents', docId));
-                        } catch (error) {
-                            console.error("Error deleting document:", error);
-                            alert("Не удалось удалить документ.");
-                        }
+                    if (confirm('Удалить документ?')) {
+                        await deleteDoc(doc(db, 'cases', selectedCaseId, docId));
+                        await logAction('doc_deleted', { caseId: selectedCaseId, docId });
                     }
+                    break;
+                case 'execute-ai-task':
+                    const task = ui.aiTaskInput.value;
+                    if (!task || !selectedCaseId) return;
+                    ui.aiLoader.style.display = 'flex'; ui.aiTaskResultContainer.classList.add('hidden');
+                    const caseData = casesCache.find(c => c.id === selectedCaseId);
+                    const documentsText = docsCache.map(d => `"${d.name}"`).join(', ');
+                    const prompt = `Как юрист-ассистент, выполни задачу для дела №${caseData.caseNumber} (Истец: ${caseData.plaintiff}, Ответчик: ${caseData.defendant}). Документы в деле: ${documentsText}. ЗАДАЧА: "${task}". Сгенерируй текст документа в формате, готовом для копирования.`;
+                    try {
+                        const resultText = await callGemini(prompt);
+                        ui.aiTaskResultOutput.value = resultText;
+                        ui.aiTaskResultContainer.classList.remove('hidden');
+                    } catch (error) { alert(`Ошибка ИИ: ${error.message}`); }
+                    finally { ui.aiLoader.style.display = 'none'; }
+                    break;
+                case 'save-ai-result':
+                    const text = ui.aiTaskResultOutput.value;
+                    const docName = prompt("Введите имя файла для сохранения:", "Документ от ИИ.txt");
+                    if (!docName || !text) return;
+                    const blob = new Blob([text], { type: 'text/plain' });
+                    uploadFiles([new File([blob], docName)]);
+                    break;
+                case 'copy-ai-result':
+                    ui.aiTaskResultOutput.select();
+                    document.execCommand('copy');
+                    break;
+                case 'delete-event':
+                    const eventId = ui.eventForm.eventId.value;
+                    if (eventId && confirm('Вы уверены?')) { await deleteDoc(doc(db, 'events', eventId)); await logAction('event_deleted', { eventId }); ui.eventModal.style.display = 'none'; }
                     break;
             }
         });
-        
-        ui.aiContent.addEventListener('click', async (e) => {
-            const analyzeBtn = e.target.closest('[data-action="analyze-doc"]');
-            if (!analyzeBtn) return;
 
-            const docId = analyzeBtn.dataset.docId;
-            const docName = analyzeBtn.dataset.docName;
-            
-            ui.aiLoader.style.display = 'flex';
-            ui.aiContent.innerHTML = '';
-            ui.aiContent.appendChild(ui.aiLoader);
-
-            const prompt = `Ты — опытный юрист-помощник. Проанализируй юридический документ с названием "${docName}". Предоставь краткое содержание на 1-2 предложения, выдели 3-4 ключевых момента в виде списка и предложи 2-3 следующих шага или действия в виде списка.`;
-
+        // --- ОБРАБОТЧИКИ ФОРМ ---
+        ui.authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = ui.authForm.email.value, password = ui.authForm.password.value;
+            ui.authMessage.textContent = ''; ui.authMessage.className = 'text-sm h-4';
             try {
-                const payload = { 
-                    contents: [{ role: "user", parts: [{ text: prompt }] }],
-                    generationConfig: {
-                        responseMimeType: "application/json",
-                        responseSchema: {
-                            type: "OBJECT",
-                            properties: {
-                                "summary": { "type": "STRING" }, "keyPoints": { "type": "ARRAY", "items": { "type": "STRING" } }, "suggestions": { "type": "ARRAY", "items": { "type": "STRING" } }
-                            },
-                            required: ["summary", "keyPoints", "suggestions"]
-                        }
-                    }
-                };
-                const apiKey = "";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-                
-                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const result = await response.json();
-                
-                if (result.candidates && result.candidates.length > 0) {
-                    const text = result.candidates[0].content.parts[0].text;
-                    const analysisData = JSON.parse(text);
-                    const docRef = doc(db, 'cases', selectedCaseId, 'documents', docId);
-                    await updateDoc(docRef, {
-                        aiAnalysis: { analyzed: true, summary: analysisData.summary, keyPoints: analysisData.keyPoints, suggestions: analysisData.suggestions }
-                    });
-                } else {
-                     throw new Error("No content in Gemini response.");
+                if (isLoginMode) { await signInWithEmailAndPassword(auth, email, password); } 
+                else {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    await setDoc(doc(db, "users", userCredential.user.uid), { email: userCredential.user.email, status: "pending", createdAt: serverTimestamp(), position: "Пользователь" });
+                    await signOut(auth);
+                    ui.authMessage.textContent = 'Спасибо! Ваша заявка отправлена на рассмотрение.';
+                    ui.authMessage.classList.add('text-green-600');
                 }
             } catch (error) {
-                console.error("Gemini API Error:", error);
-                alert("Не удалось проанализировать документ. Убедитесь, что правила безопасности Firebase настроены верно.");
-                renderAiAnalysis({ id: docId, name: docName, aiAnalysis: { analyzed: false } });
-            } finally {
-                ui.aiLoader.style.display = 'none';
+                ui.authMessage.classList.add('text-red-600');
+                ui.authMessage.textContent = error.code.includes('auth/invalid') ? 'Неверный email или пароль.' : error.code.includes('email-already-in-use') ? 'Этот email уже используется.' : 'Произошла ошибка.';
             }
-        });
-
-        document.getElementById('addCaseBtn').addEventListener('click', () => ui.addCaseModal.classList.remove('hidden'));
-        document.querySelectorAll('.close-modal-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.target.closest('.modal-backdrop').classList.add('hidden');
-            });
         });
 
         ui.addCaseForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const caseData = {
-                court: ui.addCaseForm.court.value,
-                caseNumber: ui.addCaseForm.caseNumber.value,
-                plaintiff: ui.addCaseForm.plaintiff.value,
-                defendant: ui.addCaseForm.defendant.value,
-                createdAt: serverTimestamp(),
-                creatorEmail: currentUser.email,
-                creatorId: currentUser.uid
-            };
-            await addDoc(collection(db, 'cases'), caseData);
-            ui.addCaseForm.reset();
-            ui.addCaseModal.classList.add('hidden');
+            const caseData = { court: ui.addCaseForm.court.value, caseNumber: ui.addCaseForm.caseNumber.value, plaintiff: ui.addCaseForm.plaintiff.value, defendant: ui.addCaseForm.defendant.value, createdAt: serverTimestamp(), creatorEmail: currentUser.email, creatorId: currentUser.uid };
+            const newDoc = await addDoc(collection(db, 'cases'), caseData);
+            await logAction('case_created', { caseId: newDoc.id, caseNumber: caseData.caseNumber });
+            ui.addCaseForm.reset(); ui.addCaseModal.style.display = 'none';
         });
 
         ui.editCaseForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const caseId = ui.editCaseForm.caseId.value;
-            const updatedData = {
-                court: ui.editCaseForm.court.value,
-                caseNumber: ui.editCaseForm.caseNumber.value,
-                plaintiff: ui.editCaseForm.plaintiff.value,
-                defendant: ui.editCaseForm.defendant.value,
-            };
-            const caseRef = doc(db, 'cases', caseId);
-            await updateDoc(caseRef, updatedData);
-            ui.editCaseForm.reset();
-            ui.editCaseModal.classList.add('hidden');
+            const updatedData = { court: ui.editCaseForm.court.value, caseNumber: ui.editCaseForm.caseNumber.value, plaintiff: ui.editCaseForm.plaintiff.value, defendant: ui.editCaseForm.defendant.value };
+            await updateDoc(doc(db, 'cases', caseId), updatedData);
+            await logAction('case_updated', { caseId, caseNumber: updatedData.caseNumber });
+            ui.editCaseForm.reset(); ui.editCaseModal.style.display = 'none';
         });
 
-        ui.uploadDocBtn.addEventListener('click', () => {
-            if (!selectedCaseId) return;
-            ui.fileUploadInput.click();
+        ui.profileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userId = ui.profileForm.userId.value;
+            const newPosition = ui.profileForm.position.value;
+            await updateDoc(doc(db, 'users', userId), { position: newPosition });
+            await logAction('profile_updated', { updatedUserId: userId, newPosition });
+            ui.profileModal.style.display = 'none';
         });
 
-        ui.fileUploadInput.addEventListener('change', async (event) => {
-            const file = event.target.files[0];
-            if (!file || !selectedCaseId) return;
-
-            ui.uploadDocBtn.disabled = true;
-            ui.uploadDocBtn.innerHTML = '<div class="loader w-5 h-5"></div><span>Загрузка...</span>';
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('UPLOADCARE_PUB_KEY', UPLOADCARE_PUBLIC_KEY);
-            formData.append('UPLOADCARE_STORE', 'auto');
-
-            try {
-                const response = await fetch(`https://upload.uploadcare.com/base/`, {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (!response.ok) throw new Error('Upload to Uploadcare failed');
-                
-                const data = await response.json();
-                const fileId = data.file;
-                const downloadURL = `https://ucarecdn.com/${fileId}/${file.name}`;
-
-                const newDoc = {
-                    name: file.name,
-                    downloadURL: downloadURL,
-                    createdAt: serverTimestamp(),
-                    creatorEmail: currentUser.email,
-                    creatorId: currentUser.uid,
-                    aiAnalysis: { analyzed: false, summary: 'Документ не проанализирован.' }
-                };
-                await addDoc(collection(db, 'cases', selectedCaseId, 'documents'), newDoc);
-            } catch (error) {
-                console.error("Error uploading file:", error);
-                alert('Не удалось загрузить файл. Проверьте ваш Public Key для Uploadcare.');
-            } finally {
-                ui.uploadDocBtn.disabled = false;
-                ui.uploadDocBtn.innerHTML = '<i data-lucide="upload-cloud"></i><span>Загрузить</span>';
-                lucide.createIcons();
-                event.target.value = null;
-            }
+        ui.eventForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(ui.eventForm);
+            const eventId = formData.get('eventId');
+            const eventData = { title: formData.get('title'), start: new Date(formData.get('start')), end: formData.get('end') ? new Date(formData.get('end')) : null, description: formData.get('description'), caseLink: formData.get('caseLink'), updatedAt: serverTimestamp(), editor: currentUser.email };
+            if (eventId) { await updateDoc(doc(db, 'events', eventId), eventData); await logAction('event_updated', { eventId, title: eventData.title }); } 
+            else { eventData.createdAt = serverTimestamp(); eventData.creator = currentUser.email; const newDoc = await addDoc(collection(db, 'events'), eventData); await logAction('event_created', { eventId: newDoc.id, title: eventData.title }); }
+            ui.eventModal.style.display = 'none';
         });
-
-        ui.adminPanelBtn.addEventListener('click', () => {
-            ui.adminModal.classList.remove('hidden');
-            listenForPendingUsers();
-        });
-
-        function listenForPendingUsers() {
-            const q = query(collection(db, "users"), where("status", "==", "pending"));
-            onSnapshot(q, (snapshot) => {
-                const list = ui.pendingUsersList;
-                list.innerHTML = '';
-                if (snapshot.empty) {
-                    list.innerHTML = '<p class="text-gray-500">Новых заявок нет.</p>';
-                    return;
-                }
-                snapshot.forEach(userDoc => {
-                    const user = userDoc.data();
-                    const div = document.createElement('div');
-                    div.className = "flex items-center justify-between p-3 bg-gray-50 rounded-lg";
-                    div.innerHTML = `<div><p class="font-semibold">${user.email}</p><p class="text-xs text-gray-500">ID: ${userDoc.id}</p></div><button data-uid="${userDoc.id}" class="approve-btn px-3 py-1 bg-green-500 text-white text-sm font-semibold rounded-md hover:bg-green-600">Одобрить</button>`;
-                    list.appendChild(div);
-                });
-            });
-        }
         
-        ui.pendingUsersList.addEventListener('click', async e => {
-            if (e.target.classList.contains('approve-btn')) {
-                await updateDoc(doc(db, "users", e.target.dataset.uid), { status: "approved" });
-            }
-        });
+        ui.fileUploadInput.addEventListener('change', (e) => uploadFiles(e.target.files));
+        
+        ui.aiTabButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                ui.aiTabButtons.forEach(b => {
+                    b.classList.remove('border-blue-500', 'text-blue-600');
+                    b.classList.add('border-transparent', 'text-gray-500');
+                });
+                btn.classList.add('border-blue-500', 'text-blue-600');
+                btn.classList.remove('border-transparent', 'text-gray-500');
 
+                ui.analysisTabContent.style.display = tab === 'analysis' ? 'block' : 'none';
+                ui.tasksTabContent.style.display = tab === 'tasks' ? 'block' : 'none';
+
+                if (tab === 'analysis' && selectedCaseId) {
+                    analyzeCase();
+                }
+            });
+        });
+        
+        lucide.createIcons();
     </script>
 </body>
 </html>
