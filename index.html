@@ -20,6 +20,7 @@
         .fc-event { font-size: 0.8rem; cursor: pointer; }
         .prose { max-width: none; }
         .prose br { display: block; content: ""; margin-top: 0.5em; }
+        .doc-item.selected { background-color: #eff6ff; border-left: 3px solid #2563eb; }
     </style>
 </head>
 <body class="text-gray-800">
@@ -65,8 +66,8 @@
 
         <main id="cases-view" class="p-4 main-grid">
             <div class="bg-white rounded-xl shadow-sm flex flex-col"><div class="p-4 border-b"><h2 class="text-lg font-bold">Общая картотека дел</h2><p class="text-sm text-gray-500">Всего дел: <span id="case-count">0</span></p></div><div class="flex-grow overflow-y-auto p-2 relative"><div id="case-list-loader" class="absolute inset-0 flex items-center justify-center bg-white/80 z-10"><div class="loader"></div></div><ul id="case-list" class="space-y-1"></ul></div><div class="p-4 border-t"><button data-action="open-add-case-modal" class="w-full flex items-center justify-center space-x-2 bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700"><i data-lucide="plus-circle"></i><span>Новое дело</span></button></div></div>
-            <div class="bg-white rounded-xl shadow-sm flex flex-col"><div class="p-4 border-b"><h2 class="text-lg font-bold">Реестр документов по делу</h2><p id="current-case-title" class="text-sm text-gray-500">Выберите дело</p></div><div id="docs-container" class="flex-grow overflow-y-auto p-4 space-y-4"><div id="no-docs-placeholder" class="h-full flex items-center justify-center"><div class="text-center text-gray-500"><i data-lucide="file-x" class="mx-auto w-16 h-16"></i><p class="mt-2 font-semibold">Документы отсутствуют</p></div></div></div><div class="p-4 border-t flex space-x-2"><button data-action="upload-doc" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg disabled:opacity-50" disabled><i data-lucide="upload-cloud"></i><span>Загрузить</span></button><button data-action="add-folder" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg disabled:opacity-50" disabled><i data-lucide="folder-plus"></i><span>Создать папку</span></button></div></div>
-            <div class="bg-white rounded-xl shadow-sm flex flex-col"><div class="p-4 border-b flex items-center space-x-3"><img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Google_Gemini_logo.svg" alt="Логотип Gemini" class="w-7 h-7"><h2 class="text-lg font-bold">ИИ-Ассистент</h2></div><div class="flex-grow flex flex-col"><div class="border-b"><nav class="flex -mb-px"><button data-tab="analysis" class="ai-tab-btn border-b-2 border-blue-500 text-blue-600 py-3 px-4 font-medium">Анализ дела</button><button data-tab="tasks" class="ai-tab-btn border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-3 px-4 font-medium">Задачи для ИИ</button></nav></div><div class="flex-grow overflow-y-auto relative p-4 space-y-4"><div id="ai-loader" class="absolute inset-0 hidden items-center justify-center bg-white/80 z-10"><div class="loader"></div></div><div id="analysis-tab-content"><div id="ai-placeholder" class="h-full flex items-center justify-center"><div class="text-center text-gray-500"><i data-lucide="mouse-pointer-square" class="mx-auto w-16 h-16"></i><p class="mt-2 font-semibold">Выберите дело для анализа</p></div></div><div id="ai-analysis-results" class="hidden space-y-4"></div></div><div id="tasks-tab-content" class="hidden space-y-4"><p class="text-sm text-gray-600">Опишите задачу для ИИ-ассистента. Например: "Подготовь ходатайство об ознакомлении с материалами дела."</p><textarea id="ai-task-input" class="w-full h-32 p-2 border rounded-lg" placeholder="Текст задачи..."></textarea><button data-action="execute-ai-task" class="w-full flex items-center justify-center space-x-2 bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50" disabled>Выполнить задачу</button><div id="ai-task-result-container" class="hidden space-y-2 mt-4"><h3 class="font-bold">Результат:</h3><div class="relative"><textarea id="ai-task-result-output" class="w-full h-64 p-2 border rounded-lg bg-gray-50" readonly></textarea><button data-action="copy-ai-result" class="absolute top-2 right-2 p-1.5 bg-gray-200 rounded-md hover:bg-gray-300"><i data-lucide="copy" class="w-4 h-4 pointer-events-none"></i></button></div><button data-action="save-ai-result" class="w-full flex items-center justify-center space-x-2 bg-green-600 text-white font-semibold py-2.5 rounded-lg hover:bg-green-700">Сохранить как документ в дело</button></div></div></div></div></div>
+            <div class="bg-white rounded-xl shadow-sm flex flex-col"><div class="p-4 border-b"><h2 class="text-lg font-bold">Реестр документов по делу</h2><p id="current-case-title" class="text-sm text-gray-500">Выберите дело</p></div><div id="docs-container" class="flex-grow overflow-y-auto p-4 space-y-4"><div id="no-docs-placeholder" class="h-full flex items-center justify-center"><div class="text-center text-gray-500"><i data-lucide="file-x" class="mx-auto w-16 h-16"></i><p class="mt-2 font-semibold">Документы отсутствуют</p></div></div></div><div class="p-4 border-t flex space-x-2"><button data-action="upload-doc" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg disabled:opacity-50" disabled><i data-lucide="upload-cloud"></i><span>Загрузить файлы</span></button><button data-action="upload-folder" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg disabled:opacity-50" disabled><i data-lucide="folder-up"></i><span>Загрузить папку</span></button><button data-action="add-folder" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg disabled:opacity-50" disabled><i data-lucide="folder-plus"></i><span>Создать папку</span></button></div></div>
+            <div class="bg-white rounded-xl shadow-sm flex flex-col"><div class="p-4 border-b flex items-center space-x-3"><img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Google_Gemini_logo.svg" alt="Логотип Gemini" class="w-7 h-7"><h2 class="text-lg font-bold">ИИ-Ассистент</h2></div><div class="flex-grow flex flex-col"><div class="border-b"><nav class="flex -mb-px"><button data-tab="analysis" class="ai-tab-btn border-b-2 border-blue-500 text-blue-600 py-3 px-4 font-medium">Анализ</button><button data-tab="tasks" class="ai-tab-btn border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-3 px-4 font-medium">Задачи для ИИ</button></nav></div><div class="flex-grow overflow-y-auto relative p-4 space-y-4"><div id="ai-loader" class="absolute inset-0 hidden items-center justify-center bg-white/80 z-10"><div class="loader"></div></div><div id="analysis-tab-content"><div id="ai-placeholder" class="h-full flex items-center justify-center"><div class="text-center text-gray-500"><i data-lucide="mouse-pointer-square" class="mx-auto w-16 h-16"></i><p class="mt-2 font-semibold">Выберите дело или документ</p></div></div><div id="ai-analysis-content" class="hidden space-y-4"><button data-action="analyze" class="w-full flex items-center justify-center space-x-2 bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50" disabled>Анализировать</button><div id="ai-analysis-results" class="hidden space-y-4"></div></div></div><div id="tasks-tab-content" class="hidden space-y-4"><p class="text-sm text-gray-600">Опишите задачу для ИИ-ассистента. Например: "Подготовь ходатайство об ознакомлении с материалами дела."</p><textarea id="ai-task-input" class="w-full h-32 p-2 border rounded-lg" placeholder="Текст задачи..."></textarea><button data-action="execute-ai-task" class="w-full flex items-center justify-center space-x-2 bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50" disabled>Выполнить задачу</button><div id="ai-task-result-container" class="hidden space-y-2 mt-4"><h3 class="font-bold">Результат:</h3><div class="relative"><textarea id="ai-task-result-output" class="w-full h-64 p-2 border rounded-lg bg-gray-50" readonly></textarea><button data-action="copy-ai-result" class="absolute top-2 right-2 p-1.5 bg-gray-200 rounded-md hover:bg-gray-300"><i data-lucide="copy" class="w-4 h-4 pointer-events-none"></i></button></div><button data-action="save-ai-result" class="w-full flex items-center justify-center space-x-2 bg-green-600 text-white font-semibold py-2.5 rounded-lg hover:bg-green-700">Сохранить как документ в дело</button></div></div></div></div></div>
         </main>
         <main id="calendar-view" class="p-4 hidden"><div class="bg-white rounded-xl shadow-sm p-4"><div id="calendar-container"></div></div></main>
     </div>
@@ -78,7 +79,14 @@
     <div id="eventModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop"><form id="eventForm" class="bg-white rounded-xl shadow-2xl w-full max-w-lg m-4"><div class="p-6 border-b flex justify-between items-center"><h3 id="event-modal-title" class="text-xl font-bold">Новое событие</h3><button type="button" data-action="close-modal" class="text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button></div><div class="p-6 space-y-4"><input type="hidden" name="eventId"><label class="block text-sm font-medium">Название события</label><input name="title" type="text" class="w-full px-3 py-2 border rounded-lg" required><label class="block text-sm font-medium">Дата начала</label><input name="start" type="datetime-local" class="w-full px-3 py-2 border rounded-lg" required><label class="block text-sm font-medium">Дата окончания</label><input name="end" type="datetime-local" class="w-full px-3 py-2 border rounded-lg"><label class="block text-sm font-medium">Привязать к делу</label><select name="caseLink" class="w-full px-3 py-2 border rounded-lg"><option value="">Не привязывать</option></select><label class="block text-sm font-medium">Описание</label><textarea name="description" class="w-full px-3 py-2 border rounded-lg h-24"></textarea></div><div class="p-6 bg-gray-50 rounded-b-xl flex justify-between items-center"><button data-action="delete-event" type="button" class="px-4 py-2 bg-red-100 text-red-700 font-semibold hover:bg-red-200 rounded-lg hidden">Удалить</button><div><button type="button" data-action="close-modal" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">Отмена</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold hover:bg-blue-700 rounded-lg ml-2">Сохранить</button></div></div></form></div>
     <div id="addCaseModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop"><form id="addCaseForm" class="bg-white rounded-xl shadow-2xl w-full max-w-lg m-4"><div class="p-6 border-b flex justify-between items-center"><h3 class="text-xl font-bold">Создание нового дела</h3><button type="button" data-action="close-modal" class="text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button></div><div class="p-6 space-y-4"><input name="court" type="text" placeholder="Наименование суда" class="w-full px-3 py-2 border rounded-lg" required><input name="caseNumber" type="text" placeholder="Номер дела" class="w-full px-3 py-2 border rounded-lg" required><input name="plaintiff" type="text" placeholder="Истец" class="w-full px-3 py-2 border rounded-lg" required><input name="defendant" type="text" placeholder="Ответчик" class="w-full px-3 py-2 border rounded-lg" required></div><div class="p-6 bg-gray-50 rounded-b-xl flex justify-end space-x-3"><button type="button" data-action="close-modal" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">Отмена</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold hover:bg-blue-700 rounded-lg">Создать дело</button></div></form></div>
     <div id="editCaseModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop"><form id="editCaseForm" class="bg-white rounded-xl shadow-2xl w-full max-w-lg m-4"><div class="p-6 border-b flex justify-between items-center"><h3 class="text-xl font-bold">Редактирование дела</h3><button type="button" data-action="close-modal" class="text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button></div><div class="p-6 space-y-4"><input type="hidden" name="caseId"><label class="block text-sm font-medium text-gray-700 mb-1">Наименование суда</label><input name="court" type="text" class="w-full px-3 py-2 border rounded-lg" required><label class="block text-sm font-medium text-gray-700 mb-1">Номер дела</label><input name="caseNumber" type="text" class="w-full px-3 py-2 border rounded-lg" required><label class="block text-sm font-medium text-gray-700 mb-1">Истец</label><input name="plaintiff" type="text" class="w-full px-3 py-2 border rounded-lg" required><label class="block text-sm font-medium text-gray-700 mb-1">Ответчик</label><input name="defendant" type="text" class="w-full px-3 py-2 border rounded-lg" required></div><div class="p-6 bg-gray-50 rounded-b-xl flex justify-end space-x-3"><button type="button" data-action="close-modal" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">Отмена</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold hover:bg-blue-700 rounded-lg">Сохранить</button></div></form></div>
+    <div id="moveDocModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop"><form id="moveDocForm" class="bg-white rounded-xl shadow-2xl w-full max-w-md m-4"><div class="p-6 border-b"><h3 class="text-xl font-bold">Переместить документ</h3></div><div class="p-6"><input type="hidden" name="docToMoveId"><label for="folderSelect" class="block text-sm font-medium text-gray-700">Выберите папку назначения</label><select id="folderSelect" name="folderId" class="w-full px-3 py-2 border rounded-lg mt-1"></select></div><div class="p-6 bg-gray-50 rounded-b-xl flex justify-end space-x-3"><button type="button" data-action="close-modal" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">Отмена</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold hover:bg-blue-700 rounded-lg">Переместить</button></div></form></div>
+    
+    <!-- Универсальные модальные окна -->
+    <div id="confirmModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop"><div class="bg-white rounded-xl shadow-2xl w-full max-w-sm m-4"><div class="p-6 text-center"><i data-lucide="alert-triangle" class="mx-auto w-12 h-12 text-yellow-500"></i><h3 id="confirmModalTitle" class="text-lg font-medium text-gray-900 mt-2">Вы уверены?</h3><p id="confirmModalText" class="mt-2 text-sm text-gray-500">Это действие необратимо.</p></div><div class="p-4 bg-gray-50 rounded-b-xl flex justify-center space-x-3"><button data-action="confirm-cancel" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg w-24">Отмена</button><button data-action="confirm-ok" class="px-4 py-2 bg-red-600 text-white font-semibold hover:bg-red-700 rounded-lg w-24">Удалить</button></div></div></div>
+    <div id="promptModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop"><form id="promptForm" class="bg-white rounded-xl shadow-2xl w-full max-w-md m-4"><div class="p-6 border-b"><h3 id="promptModalTitle" class="text-xl font-bold">Введите значение</h3></div><div class="p-6"><label id="promptModalLabel" for="promptInput" class="block text-sm font-medium text-gray-700">Название</label><input id="promptInput" name="promptInput" type="text" class="w-full px-3 py-2 border rounded-lg mt-1" required></div><div class="p-6 bg-gray-50 rounded-b-xl flex justify-end space-x-3"><button type="button" data-action="prompt-cancel" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">Отмена</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold hover:bg-blue-700 rounded-lg">Сохранить</button></div></form></div>
+
     <input type="file" id="file-upload-input" class="hidden" multiple />
+    <input type="file" id="folder-upload-input" class="hidden" webkitdirectory />
 
     <!-- === СКРИПТЫ === -->
     <script type="module">
@@ -96,17 +104,67 @@
         const db = getFirestore(app);
         let calendar;
 
-        let currentUser = null, currentUserData = null, selectedCaseId = null, casesCache = [], docsCache = [], isLoginMode = true, currentView = 'cases';
+        let currentUser = null, currentUserData = null, selectedCaseId = null, selectedDocId = null, casesCache = [], docsCache = [], isLoginMode = true, currentView = 'cases';
         let casesUnsubscribe = () => {}, docsUnsubscribe = () => {};
 
         const ui = {
-            authScreen: document.getElementById('auth-screen'), mainApp: document.getElementById('main-app'), casesView: document.getElementById('cases-view'), calendarView: document.getElementById('calendar-view'), authForm: document.getElementById('auth-form'), authMessage: document.getElementById('auth-message'), toggleAuthModeBtn: document.getElementById('toggle-auth-mode'), userEmail: document.getElementById('user-email'), adminPanelBtn: document.querySelector('[data-action="open-admin-panel"]'), caseList: document.getElementById('case-list'), caseCount: document.getElementById('case-count'), caseListLoader: document.getElementById('case-list-loader'), currentCaseTitle: document.getElementById('current-case-title'), docsContainer: document.getElementById('docs-container'), noDocsPlaceholder: document.getElementById('no-docs-placeholder'), uploadDocBtn: document.querySelector('[data-action="upload-doc"]'), addFolderBtn: document.querySelector('[data-action="add-folder"]'), fileUploadInput: document.getElementById('file-upload-input'), aiTabButtons: document.querySelectorAll('.ai-tab-btn'), analysisTabContent: document.getElementById('analysis-tab-content'), tasksTabContent: document.getElementById('tasks-tab-content'), aiLoader: document.getElementById('ai-loader'), aiPlaceholder: document.getElementById('ai-placeholder'), aiAnalysisResults: document.getElementById('ai-analysis-results'), aiTaskInput: document.getElementById('ai-task-input'), aiExecuteTaskBtn: document.querySelector('[data-action="execute-ai-task"]'), aiTaskResultContainer: document.getElementById('ai-task-result-container'), aiTaskResultOutput: document.getElementById('ai-task-result-output'), addCaseModal: document.getElementById('addCaseModal'), addCaseForm: document.getElementById('addCaseForm'), editCaseModal: document.getElementById('editCaseModal'), editCaseForm: document.getElementById('editCaseForm'), adminModal: document.getElementById('adminModal'), pendingUsersList: document.getElementById('pending-users-list'), profileModal: document.getElementById('profileModal'), profileForm: document.getElementById('profileForm'), profileEmail: document.getElementById('profile-email'), profileCreatedAt: document.getElementById('profile-createdAt'), profilePosition: document.getElementById('profile-position'), profileAdminFooter: document.getElementById('profile-admin-footer'), logsModal: document.getElementById('logsModal'), logsList: document.getElementById('logs-list'), eventModal: document.getElementById('eventModal'), eventForm: document.getElementById('eventForm'), eventModalTitle: document.getElementById('event-modal-title'),
+            authScreen: document.getElementById('auth-screen'), mainApp: document.getElementById('main-app'), casesView: document.getElementById('cases-view'), calendarView: document.getElementById('calendar-view'), authForm: document.getElementById('auth-form'), authMessage: document.getElementById('auth-message'), toggleAuthModeBtn: document.getElementById('toggle-auth-mode'), userEmail: document.getElementById('user-email'), adminPanelBtn: document.querySelector('[data-action="open-admin-panel"]'), caseList: document.getElementById('case-list'), caseCount: document.getElementById('case-count'), caseListLoader: document.getElementById('case-list-loader'), currentCaseTitle: document.getElementById('current-case-title'), docsContainer: document.getElementById('docs-container'), noDocsPlaceholder: document.getElementById('no-docs-placeholder'), uploadDocBtn: document.querySelector('[data-action="upload-doc"]'), addFolderBtn: document.querySelector('[data-action="add-folder"]'), fileUploadInput: document.getElementById('file-upload-input'), folderUploadInput: document.getElementById('folder-upload-input'), aiTabButtons: document.querySelectorAll('.ai-tab-btn'), analysisTabContent: document.getElementById('analysis-tab-content'), tasksTabContent: document.getElementById('tasks-tab-content'), aiLoader: document.getElementById('ai-loader'), aiPlaceholder: document.getElementById('ai-placeholder'), aiAnalysisContent: document.getElementById('ai-analysis-content'), aiAnalysisResults: document.getElementById('ai-analysis-results'), aiTaskInput: document.getElementById('ai-task-input'), aiExecuteTaskBtn: document.querySelector('[data-action="execute-ai-task"]'), aiTaskResultContainer: document.getElementById('ai-task-result-container'), aiTaskResultOutput: document.getElementById('ai-task-result-output'), addCaseModal: document.getElementById('addCaseModal'), addCaseForm: document.getElementById('addCaseForm'), editCaseModal: document.getElementById('editCaseModal'), editCaseForm: document.getElementById('editCaseForm'), adminModal: document.getElementById('adminModal'), pendingUsersList: document.getElementById('pending-users-list'), profileModal: document.getElementById('profileModal'), profileForm: document.getElementById('profileForm'), profileEmail: document.getElementById('profile-email'), profileCreatedAt: document.getElementById('profile-createdAt'), profilePosition: document.getElementById('profile-position'), profileAdminFooter: document.getElementById('profile-admin-footer'), logsModal: document.getElementById('logsModal'), logsList: document.getElementById('logs-list'), eventModal: document.getElementById('eventModal'), eventForm: document.getElementById('eventForm'), eventModalTitle: document.getElementById('event-modal-title'), moveDocModal: document.getElementById('moveDocModal'), moveDocForm: document.getElementById('moveDocForm'),
         };
+
+        function showConfirm(title, text) {
+            return new Promise((resolve) => {
+                const confirmModal = document.getElementById('confirmModal');
+                document.getElementById('confirmModalTitle').textContent = title;
+                document.getElementById('confirmModalText').textContent = text;
+                confirmModal.style.display = 'flex';
+                const okBtn = confirmModal.querySelector('[data-action="confirm-ok"]');
+                const cancelBtn = confirmModal.querySelector('[data-action="confirm-cancel"]');
+                const closeHandler = (result) => {
+                    confirmModal.style.display = 'none';
+                    okBtn.removeEventListener('click', okClickHandler);
+                    cancelBtn.removeEventListener('click', cancelClickHandler);
+                    resolve(result);
+                };
+                const okClickHandler = () => closeHandler(true);
+                const cancelClickHandler = () => closeHandler(false);
+                okBtn.addEventListener('click', okClickHandler, { once: true });
+                cancelBtn.addEventListener('click', cancelClickHandler, { once: true });
+            });
+        }
+
+        function showPrompt(title, label, defaultValue = '') {
+            return new Promise((resolve) => {
+                const promptModal = document.getElementById('promptModal');
+                const promptForm = document.getElementById('promptForm');
+                const input = document.getElementById('promptInput');
+                document.getElementById('promptModalTitle').textContent = title;
+                document.getElementById('promptModalLabel').textContent = label;
+                input.value = defaultValue;
+                promptModal.style.display = 'flex';
+                input.focus();
+                const submitHandler = (e) => {
+                    e.preventDefault();
+                    cleanup();
+                    resolve(input.value.trim());
+                };
+                const cancelHandler = () => {
+                    cleanup();
+                    resolve(null);
+                };
+                const cleanup = () => {
+                    promptModal.style.display = 'none';
+                    promptForm.removeEventListener('submit', submitHandler);
+                    promptModal.querySelector('[data-action="prompt-cancel"]').removeEventListener('click', cancelHandler);
+                };
+                promptForm.addEventListener('submit', submitHandler, { once: true });
+                promptModal.querySelector('[data-action="prompt-cancel"]').addEventListener('click', cancelHandler, { once: true });
+            });
+        }
 
         async function logAction(action, details = {}) {
             if (!currentUser) return;
             try { await addDoc(collection(db, 'logs'), { timestamp: serverTimestamp(), userEmail: currentUser.email, userId: currentUser.uid, action, details }); } 
-            catch (error) { console.error("Ошибка логирования:", error); }
+            catch (error) { console.error("Ошибка логирования (проверьте правила Firestore для коллекции 'logs'):", error); }
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -207,12 +265,14 @@
 
         function selectCase(caseId) {
             selectedCaseId = caseId;
+            selectedDocId = null;
             document.querySelectorAll('#case-list li').forEach(li => { li.classList.toggle('bg-blue-50', li.dataset.caseId === caseId); li.classList.toggle('border-blue-500', li.dataset.caseId === caseId); });
             const caseData = casesCache.find(c => c.id === caseId);
             ui.currentCaseTitle.textContent = caseData ? caseData.caseNumber : '...';
             ui.uploadDocBtn.disabled = false; ui.addFolderBtn.disabled = false; ui.aiExecuteTaskBtn.disabled = false;
+            document.querySelector('[data-action="upload-folder"]').disabled = false;
+            updateAiPanel();
             listenToDocuments(caseId);
-            analyzeCase();
         }
 
         function listenToDocuments(caseId) {
@@ -237,7 +297,7 @@
         
         function renderFolder(folder, allDocs) {
             const folderElement = document.createElement('div');
-            folderElement.innerHTML = `<details class="group"><summary class="flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-gray-100"><div class="flex items-center space-x-2"><i data-lucide="folder" class="w-5 h-5 text-yellow-500"></i><span class="font-medium">${folder.name}</span></div><i data-lucide="chevron-right" class="w-4 h-4 transition-transform group-open:rotate-90"></i></summary><div class="pl-6 pt-2 space-y-2"></div></details>`;
+            folderElement.innerHTML = `<details class="group" open><summary class="flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-gray-100"><div class="flex items-center space-x-2"><i data-lucide="folder" class="w-5 h-5 text-yellow-500"></i><span class="font-medium">${folder.name}</span></div><div class="flex items-center space-x-1 opacity-50 group-hover:opacity-100 transition-opacity"><button data-action="edit-folder" data-doc-id="${folder.id}" class="p-1 rounded-full text-gray-500 hover:text-purple-600" title="Переименовать"><i data-lucide="pencil" class="w-4 h-4 pointer-events-none"></i></button><button data-action="delete-folder" data-doc-id="${folder.id}" class="p-1 rounded-full text-gray-500 hover:text-red-600" title="Удалить папку"><i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i></button><i data-lucide="chevron-right" class="w-4 h-4 transition-transform group-open:rotate-90"></i></div></summary><div class="pl-6 pt-2 space-y-2"></div></details>`;
             const contentDiv = folderElement.querySelector('.pl-6');
             const filesInFolder = allDocs.filter(d => d.folderId === folder.id);
             filesInFolder.forEach(file => contentDiv.appendChild(createDocElement(file)));
@@ -246,27 +306,36 @@
 
         function createDocElement(doc) {
             const el = document.createElement('div');
-            el.className = 'flex items-center justify-between p-2 rounded-lg hover:bg-blue-50';
+            el.className = `doc-item flex items-center justify-between p-2 rounded-lg hover:bg-blue-50 cursor-pointer group ${selectedDocId === doc.id ? 'selected' : ''}`;
+            el.dataset.action = "select-doc";
+            el.dataset.docId = doc.id;
             const icon = doc.name.endsWith('.pdf') ? 'file-text' : doc.name.match(/\.(jpg|jpeg|png)$/i) ? 'image' : 'file';
-            el.innerHTML = `<div class="flex items-center space-x-2"><i data-lucide="${icon}" class="w-5 h-5 text-gray-500"></i><a href="${doc.downloadURL}" target="_blank" class="text-blue-600 hover:underline">${doc.name}</a></div><button data-action="delete-doc" data-doc-id="${doc.id}" class="p-1 rounded-md text-gray-500 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i></button>`;
+            el.innerHTML = `<div class="flex items-center space-x-2 pointer-events-none"><i data-lucide="${icon}" class="w-5 h-5 text-gray-500"></i><span>${doc.name}</span></div><div class="flex items-center space-x-1 opacity-50 group-hover:opacity-100 transition-opacity"><a href="${doc.downloadURL}" target="_blank" data-action="open-doc" class="p-1 rounded-full text-gray-500 hover:text-green-600" title="Открыть"><i data-lucide="eye" class="w-4 h-4 pointer-events-none"></i></a><button data-action="rename-doc" class="p-1 rounded-full text-gray-500 hover:text-purple-600" title="Переименовать"><i data-lucide="pencil" class="w-4 h-4 pointer-events-none"></i></button><button data-action="move-doc" class="p-1 rounded-full text-gray-500 hover:text-blue-600" title="Переместить"><i data-lucide="move" class="w-4 h-4 pointer-events-none"></i></button><button data-action="delete-doc" class="p-1 rounded-full text-gray-500 hover:text-red-600" title="Удалить"><i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i></button></div>`;
             return el;
         }
-
-        async function analyzeCase() {
-            if (!selectedCaseId) { ui.aiPlaceholder.style.display = 'flex'; ui.aiAnalysisResults.classList.add('hidden'); return; }
-            ui.aiPlaceholder.style.display = 'none'; ui.aiLoader.style.display = 'flex'; ui.aiAnalysisResults.classList.add('hidden');
-            const caseData = casesCache.find(c => c.id === selectedCaseId);
-            const documentsText = docsCache.map((d, i) => `Документ ${i+1}: "${d.name}" (тип: ${d.type || 'файл'})`).join('\n');
-            const prompt = `Ты — высококвалифицированный юрист-ассистент в России. Проведи комплексный правовой анализ дела №${caseData.caseNumber} (Истец: ${caseData.plaintiff}, Ответчик: ${caseData.defendant}). В деле есть документы:\n${documentsText || 'Документы отсутствуют'}.\nЗАДАЧА: 1. **Общий вывод:** краткое резюме и перспективы. 2. **Ключевые риски:** 3-4 риска для истца. 3. **Рекомендации:** 3-4 шага со ссылками на законы РФ. 4. **Недостающие документы:** что еще нужно? Ответ должен быть структурирован.`;
-            try {
-                const resultText = await callGemini(prompt);
-                ui.aiAnalysisResults.innerHTML = `<div class="prose">${resultText.replace(/\n/g, '<br>')}</div>`;
-            } catch (error) { ui.aiAnalysisResults.innerHTML = `<p class="text-red-500">Ошибка анализа: ${error.message}</p>`; } 
-            finally { ui.aiLoader.style.display = 'none'; ui.aiAnalysisResults.classList.remove('hidden'); }
+        
+        function updateAiPanel() {
+            const analyzeBtn = document.querySelector('[data-action="analyze"]');
+            if (!selectedCaseId) {
+                ui.aiPlaceholder.style.display = 'flex';
+                ui.aiAnalysisContent.style.display = 'none';
+                return;
+            }
+            ui.aiPlaceholder.style.display = 'none';
+            ui.aiAnalysisContent.style.display = 'block';
+            ui.aiAnalysisResults.classList.add('hidden');
+            analyzeBtn.disabled = false;
+            if (selectedDocId) {
+                const doc = docsCache.find(d => d.id === selectedDocId);
+                analyzeBtn.innerHTML = `<i data-lucide="file-search" class="w-4 h-4 mr-2"></i> Анализировать документ "${doc.name}"`;
+            } else {
+                analyzeBtn.innerHTML = `<i data-lucide="briefcase" class="w-4 h-4 mr-2"></i> Анализировать дело целиком`;
+            }
+            lucide.createIcons();
         }
 
-        async function callGemini(prompt) {
-            const payload = { contents: [{ parts: [{ text: prompt }] }] };
+        async function callGemini(promptText) {
+            const payload = { contents: [{ parts: [{ text: promptText }] }] };
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
             const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (!response.ok) { const errorBody = await response.text(); throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`); }
@@ -277,7 +346,8 @@
         
         async function uploadFiles(files, folderId = null) {
             if (!selectedCaseId || !files.length) return;
-            ui.uploadDocBtn.disabled = true;
+            const uploadBtn = document.querySelector('[data-action="upload-doc"]');
+            uploadBtn.disabled = true;
             for (const file of files) {
                 const formData = new FormData();
                 formData.append('file', file);
@@ -292,7 +362,7 @@
                     await logAction('doc_uploaded', { caseId: selectedCaseId, name: file.name });
                 } catch (error) { console.error("Upload error:", error); alert('Ошибка загрузки файла.'); }
             }
-            ui.uploadDocBtn.disabled = false;
+            uploadBtn.disabled = false;
         }
 
         function populateCaseDropdown(selectElement) {
@@ -315,19 +385,24 @@
             const docId = target.closest('[data-doc-id]')?.dataset.docId;
             const uid = target.closest('[data-uid]')?.dataset.uid;
 
+            if (action !== 'select-case' && action !== 'select-doc') {
+                e.stopPropagation();
+            }
+
             switch(action) {
                 case 'logout': signOut(auth); break;
                 case 'toggle-auth-mode':
                     isLoginMode = !isLoginMode;
                     ui.authMessage.textContent = ''; ui.authForm.reset();
                     ui.authForm.querySelector('button').textContent = isLoginMode ? 'Войти' : 'Зарегистрироваться';
-                    ui.toggleAuthModeBtn.textContent = isLoginMode ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти';
+                    document.getElementById('toggle-auth-mode').textContent = isLoginMode ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти';
                     break;
                 case 'toggle-view':
+                    const viewToggleBtn = document.querySelector('[data-action="toggle-view"]');
                     currentView = (currentView === 'cases') ? 'calendar' : 'cases';
                     ui.casesView.style.display = currentView === 'cases' ? 'grid' : 'none';
                     ui.calendarView.style.display = currentView === 'calendar' ? 'block' : 'none';
-                    target.innerHTML = currentView === 'cases' ? '<i data-lucide="calendar" class="w-4 h-4"></i><span>Календарь</span>' : '<i data-lucide="briefcase" class="w-4 h-4"></i><span>К делам</span>';
+                    viewToggleBtn.innerHTML = currentView === 'cases' ? '<i data-lucide="calendar" class="w-4 h-4"></i><span>Календарь</span>' : '<i data-lucide="briefcase" class="w-4 h-4"></i><span>К делам</span>';
                     if (currentView === 'calendar') calendar.render();
                     lucide.createIcons();
                     break;
@@ -386,7 +461,7 @@
                     }
                     break;
                 case 'delete-case':
-                    if (confirm('Удалить дело и все документы?')) {
+                    if (await showConfirm('Удалить дело?', 'Вы уверены, что хотите удалить это дело и все связанные с ним документы? Это действие необратимо.')) {
                         const docsQuery = query(collection(db, 'cases', caseId, 'documents'));
                         const docsSnapshot = await getDocs(docsQuery);
                         const batch = writeBatch(db);
@@ -397,8 +472,9 @@
                     }
                     break;
                 case 'upload-doc': ui.fileUploadInput.click(); break;
+                case 'upload-folder': ui.folderUploadInput.click(); break;
                 case 'add-folder':
-                    const name = prompt("Введите название папки:");
+                    const name = await showPrompt('Создать папку', 'Введите название новой папки');
                     if (name && selectedCaseId) {
                         const newFolder = { name, type: 'folder', createdAt: serverTimestamp(), creatorEmail: currentUser.email };
                         await addDoc(collection(db, 'cases', selectedCaseId, 'documents'), newFolder);
@@ -406,10 +482,78 @@
                     }
                     break;
                 case 'delete-doc':
-                    if (confirm('Удалить документ?')) {
-                        await deleteDoc(doc(db, 'cases', selectedCaseId, docId));
+                    if (await showConfirm('Удалить документ?', 'Вы уверены, что хотите удалить этот документ?')) {
+                        await deleteDoc(doc(db, 'cases', selectedCaseId, 'documents', docId));
                         await logAction('doc_deleted', { caseId: selectedCaseId, docId });
                     }
+                    break;
+                case 'rename-doc':
+                    const docToRename = docsCache.find(d => d.id === docId);
+                    if (docToRename) {
+                        const newName = await showPrompt('Переименовать документ', 'Новое имя файла', docToRename.name);
+                        if (newName && newName !== docToRename.name) {
+                            await updateDoc(doc(db, 'cases', selectedCaseId, 'documents', docId), { name: newName });
+                            await logAction('doc_renamed', { caseId: selectedCaseId, docId, oldName: docToRename.name, newName });
+                        }
+                    }
+                    break;
+                case 'edit-folder':
+                    const folderToEdit = docsCache.find(d => d.id === docId);
+                    if (folderToEdit) {
+                        const newName = await showPrompt('Редактировать папку', 'Новое название папки', folderToEdit.name);
+                        if (newName) {
+                            await updateDoc(doc(db, 'cases', selectedCaseId, 'documents', docId), { name: newName });
+                            await logAction('folder_renamed', { caseId: selectedCaseId, docId, newName });
+                        }
+                    }
+                    break;
+                case 'delete-folder':
+                    if (await showConfirm('Удалить папку?', 'Все документы внутри папки будут также удалены! Это действие необратимо.')) {
+                        const batch = writeBatch(db);
+                        const filesInFolder = docsCache.filter(d => d.folderId === docId);
+                        filesInFolder.forEach(file => batch.delete(doc(db, 'cases', selectedCaseId, 'documents', file.id)));
+                        batch.delete(doc(db, 'cases', selectedCaseId, 'documents', docId));
+                        await batch.commit();
+                        await logAction('folder_deleted', { caseId: selectedCaseId, docId });
+                    }
+                    break;
+                case 'select-doc':
+                    selectedDocId = docId;
+                    document.querySelectorAll('.doc-item').forEach(el => el.classList.remove('selected'));
+                    target.classList.add('selected');
+                    updateAiPanel();
+                    break;
+                case 'move-doc':
+                    const folderSelect = ui.moveDocModal.querySelector('#folderSelect');
+                    folderSelect.innerHTML = '<option value="">-- Корень дела --</option>';
+                    docsCache.filter(d => d.type === 'folder').forEach(f => {
+                        const option = document.createElement('option');
+                        option.value = f.id;
+                        option.textContent = f.name;
+                        folderSelect.appendChild(option);
+                    });
+                    ui.moveDocForm.docToMoveId.value = docId;
+                    ui.moveDocModal.style.display = 'flex';
+                    break;
+                case 'analyze':
+                    ui.aiLoader.style.display = 'flex'; ui.aiAnalysisResults.classList.add('hidden');
+                    let aiPrompt, logDetails;
+                    if (selectedDocId) {
+                        const docToAnalyze = docsCache.find(d => d.id === selectedDocId);
+                        aiPrompt = `Ты — высококвалифицированный юрист-ассистент в России. Проведи детальный правовой анализ документа "${docToAnalyze.name}". ЗАДАЧА: 1. **Тип и суть документа:** Определи, что это за документ. 2. **Ключевые положения:** Выдели 3-5 самых важных пунктов или условий. 3. **Правовые риски и последствия:** Укажи на возможные риски, связанные с этим документом, ссылаясь на статьи законов РФ. 4. **Рекомендации:** Что следует предпринять в связи с этим документом?`;
+                        logDetails = { type: 'document', docId: selectedDocId, docName: docToAnalyze.name };
+                    } else {
+                        const caseData = casesCache.find(c => c.id === selectedCaseId);
+                        const documentsText = docsCache.map((d, i) => `Документ ${i+1}: "${d.name}" (тип: ${d.type || 'файл'})`).join('\n');
+                        aiPrompt = `Ты — высококвалифицированный юрист-ассистент в России. Проведи комплексный правовой анализ дела №${caseData.caseNumber} (Истец: ${caseData.plaintiff}, Ответчик: ${caseData.defendant}). В деле есть документы:\n${documentsText || 'Документы отсутствуют'}.\nЗАДАЧА: 1. **Общий вывод:** краткое резюме и перспективы. 2. **Ключевые риски:** 3-4 риска для истца. 3. **Рекомендации:** 3-4 шага со ссылками на законы РФ. 4. **Недостающие документы:** что еще нужно? Ответ должен быть структурирован.`;
+                        logDetails = { type: 'case', caseId: selectedCaseId };
+                    }
+                    try {
+                        const resultText = await callGemini(aiPrompt);
+                        ui.aiAnalysisResults.innerHTML = `<div class="prose">${resultText.replace(/\n/g, '<br>')}</div>`;
+                        await logAction('analysis_performed', logDetails);
+                    } catch (error) { ui.aiAnalysisResults.innerHTML = `<p class="text-red-500">Ошибка анализа: ${error.message}</p>`; } 
+                    finally { ui.aiLoader.style.display = 'none'; ui.aiAnalysisResults.classList.remove('hidden'); }
                     break;
                 case 'execute-ai-task':
                     const task = ui.aiTaskInput.value;
@@ -417,9 +561,9 @@
                     ui.aiLoader.style.display = 'flex'; ui.aiTaskResultContainer.classList.add('hidden');
                     const caseData = casesCache.find(c => c.id === selectedCaseId);
                     const documentsText = docsCache.map(d => `"${d.name}"`).join(', ');
-                    const prompt = `Как юрист-ассистент, выполни задачу для дела №${caseData.caseNumber} (Истец: ${caseData.plaintiff}, Ответчик: ${caseData.defendant}). Документы в деле: ${documentsText}. ЗАДАЧА: "${task}". Сгенерируй текст документа в формате, готовом для копирования.`;
+                    const aiPromptForTask = `Как юрист-ассистент, выполни задачу для дела №${caseData.caseNumber} (Истец: ${caseData.plaintiff}, Ответчик: ${caseData.defendant}). Документы в деле: ${documentsText}. ЗАДАЧА: "${task}". Сгенерируй текст документа в формате, готовом для копирования.`;
                     try {
-                        const resultText = await callGemini(prompt);
+                        const resultText = await callGemini(aiPromptForTask);
                         ui.aiTaskResultOutput.value = resultText;
                         ui.aiTaskResultContainer.classList.remove('hidden');
                     } catch (error) { alert(`Ошибка ИИ: ${error.message}`); }
@@ -427,7 +571,7 @@
                     break;
                 case 'save-ai-result':
                     const text = ui.aiTaskResultOutput.value;
-                    const docName = prompt("Введите имя файла для сохранения:", "Документ от ИИ.txt");
+                    const docName = await showPrompt('Сохранить документ', 'Введите имя файла', 'Документ от ИИ.txt');
                     if (!docName || !text) return;
                     const blob = new Blob([text], { type: 'text/plain' });
                     uploadFiles([new File([blob], docName)]);
@@ -438,7 +582,11 @@
                     break;
                 case 'delete-event':
                     const eventId = ui.eventForm.eventId.value;
-                    if (eventId && confirm('Вы уверены?')) { await deleteDoc(doc(db, 'events', eventId)); await logAction('event_deleted', { eventId }); ui.eventModal.style.display = 'none'; }
+                    if (await showConfirm('Удалить событие?', 'Вы уверены, что хотите удалить это событие из календаря?')) { 
+                        await deleteDoc(doc(db, 'events', eventId)); 
+                        await logAction('event_deleted', { eventId }); 
+                        ui.eventModal.style.display = 'none'; 
+                    }
                     break;
             }
         });
@@ -498,8 +646,27 @@
             else { eventData.createdAt = serverTimestamp(); eventData.creator = currentUser.email; const newDoc = await addDoc(collection(db, 'events'), eventData); await logAction('event_created', { eventId: newDoc.id, title: eventData.title }); }
             ui.eventModal.style.display = 'none';
         });
+
+        ui.moveDocForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const docToMoveId = ui.moveDocForm.docToMoveId.value;
+            const folderId = ui.moveDocForm.folderId.value || null;
+            await updateDoc(doc(db, 'cases', selectedCaseId, 'documents', docToMoveId), { folderId });
+            await logAction('doc_moved', { caseId: selectedCaseId, docId: docToMoveId, newFolderId: folderId });
+            ui.moveDocModal.style.display = 'none';
+        });
         
         ui.fileUploadInput.addEventListener('change', (e) => uploadFiles(e.target.files));
+        ui.folderUploadInput.addEventListener('change', async (e) => {
+            const files = e.target.files;
+            if (!files.length || !selectedCaseId) return;
+            const rootFolderName = files[0].webkitRelativePath.split('/')[0];
+            const folderData = { name: rootFolderName, type: 'folder', createdAt: serverTimestamp(), creatorEmail: currentUser.email };
+            const folderDocRef = await addDoc(collection(db, 'cases', selectedCaseId, 'documents'), folderData);
+            await logAction('folder_uploaded', { caseId: selectedCaseId, name: rootFolderName });
+            await uploadFiles(files, folderDocRef.id);
+            e.target.value = null;
+        });
         
         ui.aiTabButtons.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -513,10 +680,6 @@
 
                 ui.analysisTabContent.style.display = tab === 'analysis' ? 'block' : 'none';
                 ui.tasksTabContent.style.display = tab === 'tasks' ? 'block' : 'none';
-
-                if (tab === 'analysis' && selectedCaseId) {
-                    analyzeCase();
-                }
             });
         });
         
@@ -524,3 +687,4 @@
     </script>
 </body>
 </html>
+
