@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KemYuristUk - Ваш юридический ИИ-помощник</title>
-    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
-    <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
-    <link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
-    <link href="[https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&family=Roboto:wght@400;500&display=swap](https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&family=Roboto:wght@400;500&display=swap)" rel="stylesheet">
-    <script src="[https://unpkg.com/lucide@latest](https://unpkg.com/lucide@latest)"></script>
-    <script src='[https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js](https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js)'></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
     <!-- Стили остаются без изменений -->
     <style>
         body { font-family: 'Roboto', sans-serif; background-color: #111827; color: #d1d5db; }
@@ -45,8 +45,6 @@
 </head>
 <body class="text-gray-300">
 
-    <!-- Вся HTML структура остается без изменений -->
-    <!-- ... (весь ваш HTML код от <body> до <script type="module">) ... -->
     <div id="auth-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900">
         <div class="w-full max-w-md p-8 space-y-6 bg-gray-800 rounded-xl shadow-lg border border-gray-700">
             <div class="text-center">
@@ -61,7 +59,7 @@
                 <button type="submit" class="w-full py-2.5 rounded-lg btn-primary">Войти</button>
             </form>
             <div class="text-center">
-                <button id="toggle-auth-mode" class="text-sm font-medium text-amber-500 hover:text-amber-400">Нет аккаунта? Зарегистрироваться</button>
+                <button id="toggle-auth-mode" data-action="toggle-auth-mode" class="text-sm font-medium text-amber-500 hover:text-amber-400">Нет аккаунта? Зарегистрироваться</button>
             </div>
         </div>
     </div>
@@ -79,7 +77,7 @@
                     <i data-lucide="shield-check" class="w-4 h-4"></i><span>Админ</span>
                 </button>
                 <div data-action="open-profile" class="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-gray-700">
-                    <img id="user-avatar" src="[https://placehold.co/40x40/374151/d1d5db?text=Ю](https://placehold.co/40x40/374151/d1d5db?text=Ю)" alt="Avatar" class="rounded-full w-8 h-8">
+                    <img id="user-avatar" src="https://placehold.co/40x40/374151/d1d5db?text=Ю" alt="Avatar" class="rounded-full w-8 h-8">
                     <span id="user-email" class="font-semibold text-sm"></span>
                 </div>
                 <button data-action="logout" class="flex items-center space-x-2 px-3 py-2 bg-gray-700 hover:bg-red-800/50 rounded-lg text-sm"><i data-lucide="log-out" class="w-4 h-4"></i><span>Выйти</span></button>
@@ -88,7 +86,7 @@
         <main id="cases-view" class="p-4 main-grid">
             <div class="panel rounded-xl flex flex-col"><div class="p-4 border-b border-gray-700"><h2 class="text-lg font-bold font-heading text-white">Общая картотека дел</h2><p class="text-sm text-gray-400">Всего дел: <span id="case-count">0</span></p></div><div class="flex-grow overflow-y-auto p-2 relative"><div id="case-list-loader" class="absolute inset-0 flex items-center justify-center bg-gray-800/80 z-10"><div class="loader"></div></div><ul id="case-list" class="space-y-1"></ul></div><div class="p-4 border-t border-gray-700"><button data-action="open-add-case-modal" class="w-full flex items-center justify-center space-x-2 rounded-lg btn-primary py-2.5"><i data-lucide="plus-circle"></i><span>Новое дело</span></button></div></div>
             <div class="panel rounded-xl flex flex-col"><div class="p-4 border-b border-gray-700"><h2 class="text-lg font-bold font-heading text-white">Реестр документов по делу</h2><p id="current-case-title" class="text-sm text-gray-400">Выберите дело</p></div><div id="docs-container" class="flex-grow overflow-y-auto p-4 space-y-4"><div id="no-docs-placeholder" class="h-full flex items-center justify-center"><div class="text-center text-gray-500"><i data-lucide="file-x" class="mx-auto w-16 h-16"></i><p class="mt-2 font-semibold">Документы отсутствуют</p></div></div></div><div class="p-4 border-t border-gray-700 flex space-x-2"><button data-action="upload-doc" class="flex items-center space-x-2 px-4 py-2 btn-secondary rounded-lg disabled:opacity-50" disabled><i data-lucide="upload-cloud"></i><span>Загрузить файлы</span></button><button data-action="upload-folder" class="flex items-center space-x-2 px-4 py-2 btn-secondary rounded-lg disabled:opacity-50" disabled><i data-lucide="folder-up"></i><span>Загрузить папку</span></button><button data-action="add-folder" class="flex items-center space-x-2 px-4 py-2 btn-secondary rounded-lg disabled:opacity-50" disabled><i data-lucide="folder-plus"></i><span>Создать папку</span></button></div></div>
-            <div class="panel rounded-xl flex flex-col"><div class="p-4 border-b border-gray-700 flex items-center space-x-3"><img src="[https://upload.wikimedia.org/wikipedia/commons/a/a2/Google_Gemini_logo.svg](https://upload.wikimedia.org/wikipedia/commons/a/a2/Google_Gemini_logo.svg)" alt="Логотип Gemini" class="w-7 h-7"><h2 class="text-lg font-bold font-heading text-white">ИИ-Ассистент</h2></div><div class="flex-grow flex flex-col"><div class="border-b border-gray-700"><nav class="flex -mb-px"><button data-tab="analysis" class="ai-tab-btn border-b-2 border-amber-500 text-amber-500 py-3 px-4 font-medium">Анализ</button><button data-tab="tasks" class="ai-tab-btn border-b-2 border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-600 py-3 px-4 font-medium">Задачи для ИИ</button></nav></div><div class="flex-grow overflow-y-auto relative p-4 space-y-4"><div id="ai-loader" class="absolute inset-0 hidden items-center justify-center bg-gray-800/80 z-10"><div class="loader"></div></div><div id="analysis-tab-content"><div id="ai-placeholder" class="h-full flex items-center justify-center"><div class="text-center text-gray-500"><i data-lucide="mouse-pointer-square" class="mx-auto w-16 h-16"></i><p class="mt-2 font-semibold">Выберите дело или документ</p></div></div><div id="ai-analysis-content" class="hidden space-y-4"><button data-action="analyze" class="w-full flex items-center justify-center space-x-2 rounded-lg btn-primary py-2.5 disabled:opacity-50" disabled>Анализировать</button><div id="ai-analysis-results" class="hidden space-y-4"></div></div></div><div id="tasks-tab-content" class="hidden space-y-4"><p class="text-sm text-gray-400">Опишите задачу для ИИ-ассистента. Например: "Подготовь ходатайство об ознакомлении с материалами дела."</p><textarea id="ai-task-input" class="w-full h-32 p-2 rounded-lg input-field" placeholder="Текст задачи..."></textarea><button data-action="execute-ai-task" class="w-full flex items-center justify-center space-x-2 rounded-lg btn-primary py-2.5 disabled:opacity-50" disabled>Выполнить задачу</button><div id="ai-task-result-container" class="hidden space-y-2 mt-4"><h3 class="font-bold text-white">Результат:</h3><div class="relative"><textarea id="ai-task-result-output" class="w-full h-64 p-2 rounded-lg input-field bg-gray-800" readonly></textarea><button data-action="copy-ai-result" class="absolute top-2 right-2 p-1.5 bg-gray-600 rounded-md hover:bg-gray-500"><i data-lucide="copy" class="w-4 h-4 pointer-events-none"></i></button></div><button data-action="save-ai-result" class="w-full flex items-center justify-center space-x-2 bg-green-600 text-white font-semibold py-2.5 rounded-lg hover:bg-green-700">Сохранить как документ в дело</button></div></div></div></div></div>
+            <div class="panel rounded-xl flex flex-col"><div class="p-4 border-b border-gray-700 flex items-center space-x-3"><img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Google_Gemini_logo.svg" alt="Логотип Gemini" class="w-7 h-7"><h2 class="text-lg font-bold font-heading text-white">ИИ-Ассистент</h2></div><div class="flex-grow flex flex-col"><div class="border-b border-gray-700"><nav class="flex -mb-px"><button data-tab="analysis" class="ai-tab-btn border-b-2 border-amber-500 text-amber-500 py-3 px-4 font-medium">Анализ</button><button data-tab="tasks" class="ai-tab-btn border-b-2 border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-600 py-3 px-4 font-medium">Задачи для ИИ</button></nav></div><div class="flex-grow overflow-y-auto relative p-4 space-y-4"><div id="ai-loader" class="absolute inset-0 hidden items-center justify-center bg-gray-800/80 z-10"><div class="loader"></div></div><div id="analysis-tab-content"><div id="ai-placeholder" class="h-full flex items-center justify-center"><div class="text-center text-gray-500"><i data-lucide="mouse-pointer-square" class="mx-auto w-16 h-16"></i><p class="mt-2 font-semibold">Выберите дело или документ</p></div></div><div id="ai-analysis-content" class="hidden space-y-4"><button data-action="analyze" class="w-full flex items-center justify-center space-x-2 rounded-lg btn-primary py-2.5 disabled:opacity-50" disabled>Анализировать</button><div id="ai-analysis-results" class="hidden space-y-4"></div></div></div><div id="tasks-tab-content" class="hidden space-y-4"><p class="text-sm text-gray-400">Опишите задачу для ИИ-ассистента. Например: "Подготовь ходатайство об ознакомлении с материалами дела."</p><textarea id="ai-task-input" class="w-full h-32 p-2 rounded-lg input-field" placeholder="Текст задачи..."></textarea><button data-action="execute-ai-task" class="w-full flex items-center justify-center space-x-2 rounded-lg btn-primary py-2.5 disabled:opacity-50" disabled>Выполнить задачу</button><div id="ai-task-result-container" class="hidden space-y-2 mt-4"><h3 class="font-bold text-white">Результат:</h3><div class="relative"><textarea id="ai-task-result-output" class="w-full h-64 p-2 rounded-lg input-field bg-gray-800" readonly></textarea><button data-action="copy-ai-result" class="absolute top-2 right-2 p-1.5 bg-gray-600 rounded-md hover:bg-gray-500"><i data-lucide="copy" class="w-4 h-4 pointer-events-none"></i></button></div><button data-action="save-ai-result" class="w-full flex items-center justify-center space-x-2 bg-green-600 text-white font-semibold py-2.5 rounded-lg hover:bg-green-700">Сохранить как документ в дело</button></div></div></div></div></div>
         </main>
         <main id="calendar-view" class="p-4 hidden"><div class="panel rounded-xl p-4"><div id="calendar-container"></div></div></main>
     </div>
@@ -106,9 +104,9 @@
     <input type="file" id="folder-upload-input" class="hidden" webkitdirectory />
 
     <script type="module">
-        import { initializeApp } from "[https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js](https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js)";
-        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "[https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js](https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js)";
-        import { getFirestore, collection, doc, addDoc, onSnapshot, deleteDoc, query, serverTimestamp, orderBy, setDoc, getDoc, where, updateDoc, getDocs, writeBatch } from "[https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js](https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js)";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, addDoc, onSnapshot, deleteDoc, query, serverTimestamp, orderBy, setDoc, getDoc, where, updateDoc, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // *** НОВОЕ: Адрес вашего локального сервера ***
         // Когда вы запустите туннель (VK Tunnel или ngrok), замените этот адрес на тот, что вам выдаст программа
